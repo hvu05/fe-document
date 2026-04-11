@@ -1,19 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
-import type { Department } from '../../services/authService';
+import type { Department, RegisterPayload } from '../../services/authService';
 
 import './AuthPage.css';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<RegisterPayload>({
         firstName: '',
         lastName: '',
         username: '',
         password: '',
-        departmentId: 0,
+        departmentId: null,
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -22,25 +22,14 @@ const RegisterPage = () => {
 
     useEffect(() => {
         const fetchDepartments = async () => {
-            // try {
-            //     const response = await authService.getDepartments();
-            //     if (response.data && response.data.code === 200) {
-            //         setDepartments(response.data.data);
-            //     }
-            // } catch (err) {
-            //     console.error('Failed to fetch departments', err);
-            // }
-            const department =  [
-            {
-                id: 1,
-                name: "department 1"
-            },
-            {
-                id: 2,
-                name: "department 2"
+            try {
+                const response = await authService.getDepartments();
+                if (response.data.code === 200 && response.data.data) {
+                    setDepartments(response.data.data);
+                }
+            } catch (err) {
+                console.error('Failed to fetch departments', err);
             }
-        ]
-        setDepartments(department)
         };
         fetchDepartments();
     }, []);
@@ -71,9 +60,9 @@ const RegisterPage = () => {
             const response = await authService.register(formData);
             if (response.data && response.data.code === 200) {
                 setSuccess('Registration successful! Redirecting...');
-                // setTimeout(() => navigate('/login'), 2000);
+                navigate('/login');
             } else {
-                    setError(response.data?.message || 'Registration failed.');
+                setError(response.data?.message || 'Registration failed.');
             }
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
@@ -140,17 +129,24 @@ const RegisterPage = () => {
                         <select
                             id="departmentId"
                             name="departmentId"
-                            value={formData.departmentId}
-                            onChange={(e) => setFormData({ ...formData, departmentId: Number(e.target.value) })}
-                            style={{ 
-                                width: '100%', 
-                                padding: '10px', 
-                                border: '1px solid #ddd', 
-                                borderRadius: '4px', 
-                                marginTop: '5px' 
+                            value={formData.departmentId ?? ''}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    departmentId: e.target.value
+                                        ? Number(e.target.value)
+                                        : null,
+                                })
+                            }
+                            style={{
+                                width: '100%',
+                                padding: '10px',
+                                border: '1px solid #ddd',
+                                borderRadius: '4px',
+                                marginTop: '5px',
                             }}
                         >
-                            <option value={0}>-- Chọn phòng ban --</option>
+                            <option value="">-- Chọn phòng ban --</option>
                             {departments.map((dept) => (
                                 <option key={dept.id} value={dept.id}>
                                     {dept.name}
@@ -184,8 +180,6 @@ const RegisterPage = () => {
                             autoComplete="new-password"
                         />
                     </div>
-
-
 
                     <div className="auth-options">
                         <label className="remember-me">

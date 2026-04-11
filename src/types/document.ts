@@ -1,5 +1,3 @@
-/** @format */
-
 export interface DocumentVersion {
     id: number;
     documentId: number;

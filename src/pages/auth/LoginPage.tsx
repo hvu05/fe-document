@@ -1,43 +1,41 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
-import API_CONFIG from '../../config/api';
 import type { LoginPayload } from '../../services/authService';
+import API_CONFIG from '../../config/api';
 import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
-        if (!identifier.trim() || !password.trim()) {
-            setError('Please enter your email/username and password.');
+        if (!identifier || !password) {
+            setError('Please enter your email/username and password');
             return;
         }
 
         try {
             setLoading(true);
-            const response = await authService.login({
-                identifier: identifier.trim(),
-                password,
-            });
+            const payload: LoginPayload = { username: identifier, password };
+            const response = await authService.login(payload);
 
-            localStorage.setItem(
-                API_CONFIG.storageKeys.accessToken,
-                response.data.access_token
-            );
-            localStorage.setItem(
-                API_CONFIG.storageKeys.user,
-                JSON.stringify(response.data.user)
-            );
-
-            navigate('/');
+            const accessToken = response.data.data?.accessToken;
+            if (accessToken) {
+                localStorage.setItem(
+                    API_CONFIG.storageKeys.accessToken,
+                    accessToken
+                );
+                navigate('/upload');
+            } else {
+                setError('Login failed. Access token was not returned.');
+            }
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as {
@@ -60,19 +58,25 @@ const LoginPage: React.FC = () => {
                     <p>Login to access your documents</p>
                 </div>
 
-                {error && (
-                    <div className="auth-alert auth-alert-error">{error}</div>
-                )}
-
                 <form className="login-form" onSubmit={handleLogin}>
-                    {error && <div style={{ color: '#dc2626', marginBottom: '10px', fontSize: '0.9rem' }}>{error}</div>}
+                    {error && (
+                        <div
+                            style={{
+                                color: '#dc2626',
+                                marginBottom: '10px',
+                                fontSize: '0.9rem',
+                            }}
+                        >
+                            {error}
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <input
                             id="identifier"
                             type="text"
                             className="input-field"
-                            placeholder="Email or username"
+                            placeholder="Email, Username, or Phone"
                             value={identifier}
                             onChange={(e) => setIdentifier(e.target.value)}
                             required
@@ -105,7 +109,7 @@ const LoginPage: React.FC = () => {
                         className="btn-primary"
                         disabled={loading}
                     >
-                        {loading ? 'Signing in...' : 'Log in'}
+                        {loading ? 'Logging in...' : 'Log in'}
                     </button>
                 </form>
             </div>
