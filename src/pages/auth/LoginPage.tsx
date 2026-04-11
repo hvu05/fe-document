@@ -26,9 +26,13 @@ const LoginPage: React.FC = () => {
             const response = await authService.login(payload);
 
             // Lấy token và lưu
-            const { access_token } = response.data;
-            if (access_token) {
-                localStorage.setItem('access_token', access_token);
+            const temp  = response.data
+            console.log(temp);
+
+            const { accessToken } = temp.data;
+            console.log(accessToken);
+            if (accessToken) {
+                localStorage.setItem('access_token', accessToken);
                 // Redirect user sau khi login thành công
                 navigate('/upload');
             }
