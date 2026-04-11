@@ -1,4 +1,5 @@
 import axiosClient from './axiosClient';
+import API_CONFIG from '../config/api';
 
 // ===================== Types =====================
 
@@ -41,6 +42,21 @@ export interface LoginResponse {
     };
 }
 
+export interface UserProfile {
+    _id?: string;
+    id?: string;
+    username?: string;
+    email?: string;
+    role?: string;
+    first_name?: string;
+    last_name?: string;
+    phone?: string;
+    department_id?: number;
+    departmentId?: number;
+    created_at?: string;
+    createdAt?: string;
+}
+
 // ===================== API Calls =====================
 
 const authService = {
@@ -49,15 +65,18 @@ const authService = {
     },
 
     register: (data: RegisterPayload) => {
-        return axiosClient.post<RegisterResponse>('/auth/register', data);
+        return axiosClient.post<RegisterResponse>(
+            API_CONFIG.auth.register,
+            data
+        );
     },
 
     login: (data: LoginPayload) => {
-        return axiosClient.post<LoginResponse>('/auth/login', data);
+        return axiosClient.post<LoginResponse>(API_CONFIG.auth.login, data);
     },
 
     getProfile: () => {
-        return axiosClient.get('/auth/profile');
+        return axiosClient.get<UserProfile>(API_CONFIG.auth.profile);
     },
 };
 

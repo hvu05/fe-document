@@ -25,6 +25,13 @@
   padding: 0;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
 body {
   font-family: var(--font-family);
   background-color: var(--bg-primary);
@@ -68,6 +75,13 @@ body {
 .input-field:focus {
   border-color: var(--accent-blue);
   box-shadow: 0 0 0 3px rgba(0, 98, 255, 0.15);
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .input-field::placeholder {
