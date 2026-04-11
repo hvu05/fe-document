@@ -2,16 +2,28 @@ import axiosClient from './axiosClient';
 
 // ===================== Types =====================
 
+export interface Department {
+    id: number;
+    name: string;
+}
+
+export interface DepartmentsResponse {
+    code: number;
+    message: string;
+    data: Department[];
+}
+
 export interface RegisterPayload {
+    firstName: string;
+    lastName: string;
     username: string;
-    email: string;
     password: string;
-    phone?: string;
+    departmentId: number;
 }
 
 export interface RegisterResponse {
+    code: number;
     message: string;
-    userId: string;
 }
 
 export interface LoginPayload {
@@ -32,6 +44,10 @@ export interface LoginResponse {
 // ===================== API Calls =====================
 
 const authService = {
+    getDepartments: () => {
+        return axiosClient.get<DepartmentsResponse>('/departments');
+    },
+
     register: (data: RegisterPayload) => {
         return axiosClient.post<RegisterResponse>('/auth/register', data);
     },
