@@ -6,6 +6,7 @@ import UploadPage from '../pages/upload/UploadPage';
 import MyDocuments from '../pages/documents/MyDocuments';
 import SearchPage from '../pages/search/SearchPage';
 import ProfilePage from '../pages/profile/ProfilePage';
+import HomePage from '../pages/home/HomePage';
 
 const router = createBrowserRouter([
     {
