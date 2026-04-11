@@ -1,7 +1,8 @@
 /** @format */
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import type { UploadedDocument } from '../../types/document';
+import documentService from '../../services/documentService';
 import styles from './UploadPage.module.css';
 
 const DOCUMENT_TYPES = ['Contract', 'Report', 'Invoice', 'Other'];
@@ -55,15 +56,16 @@ function typeBadgeClass(type: string): string {
 }
 
 const UploadPage = () => {
-    const [documents, setDocuments] =
-        useState<UploadedDocument[]>(MOCK_DOCUMENTS);
+    const [documents, setDocuments] = useState<UploadedDocument[]>(MOCK_DOCUMENTS); // In reality, we fetch via useEffect
     const [title, setTitle] = useState('');
     const [type, setType] = useState(DOCUMENT_TYPES[0]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleUpload = () => {
+
+    const handleUpload = async () => {
         if (!title.trim()) {
             setError('Please enter a document title.');
             return;
@@ -74,30 +76,52 @@ const UploadPage = () => {
         }
         setError('');
 
-        const fileUrl = URL.createObjectURL(selectedFile);
-        const newDoc: UploadedDocument = {
-            id: `doc-${Date.now()}`,
-            title: title.trim(),
-            type,
-            fileName: selectedFile.name,
-            fileSize: selectedFile.size,
-            createdAt: new Date(),
-            fileUrl,
-        };
+        try {
+            setLoading(true);
+            const res = await documentService.uploadDocument(selectedFile, title.trim(), type);
+            
+            // Khi upload thành công (Giả lập response trả về document mới)
+            // Trong thực tế sẽ setDocuments([res.data.document, ...documents])
+            
+            // Xử lý mock để UI được mượt
+            let newDoc = res.data?.document;
+            if(!newDoc) {
+                 newDoc = {
+                    id: `doc-${Date.now()}`,
+                    title: title.trim(),
+                    type,
+                    fileName: selectedFile.name,
+                    fileSize: selectedFile.size,
+                    createdAt: new Date(),
+                    fileUrl: URL.createObjectURL(selectedFile),
+                 }
+            }
 
-        setDocuments((prev) => [newDoc, ...prev]);
-        setTitle('');
-        setType(DOCUMENT_TYPES[0]);
-        setSelectedFile(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
+            setDocuments((prev) => [newDoc, ...prev]);
+            setTitle('');
+            setType(DOCUMENT_TYPES[0]);
+            setSelectedFile(null);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+
+        } catch (err: unknown) {
+             console.error(err);
+             setError('Failed to upload document.');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleDelete = (id: string) => {
-        setDocuments((prev) => {
-            const doc = prev.find((d) => d.id === id);
-            if (doc?.fileUrl) URL.revokeObjectURL(doc.fileUrl);
-            return prev.filter((d) => d.id !== id);
-        });
+    const handleDelete = async (id: string) => {
+        try {
+            // await documentService.deleteDocument(id);
+            setDocuments((prev) => {
+                const doc = prev.find((d) => d.id === id);
+                if (doc?.fileUrl) URL.revokeObjectURL(doc.fileUrl);
+                return prev.filter((d) => d.id !== id);
+            });
+        } catch (error) {
+             console.error('Delete error', error);
+        }
     };
 
     const handleDownload = (doc: UploadedDocument) => {
@@ -157,9 +181,9 @@ const UploadPage = () => {
                     <button
                         className={styles.uploadBtn}
                         onClick={handleUpload}
-                        disabled={!title.trim() || !selectedFile}
+                        disabled={!title.trim() || !selectedFile || loading}
                     >
-                        Upload
+                        {loading ? 'Uploading...' : 'Upload'}
                     </button>
                 </div>
             </aside>
@@ -222,7 +246,7 @@ const UploadPage = () => {
                                                         handleDownload(doc)
                                                     }
                                                     disabled={!doc.fileUrl}
-                                                    title="Tải xuống"
+                                                    title="Download"
                                                 >
                                                     Download
                                                 </button>
@@ -231,9 +255,9 @@ const UploadPage = () => {
                                                     onClick={() =>
                                                         handleDelete(doc.id)
                                                     }
-                                                    title="Xóa"
+                                                    title="Delete"
                                                 >
-                                                    Xóa
+                                                    Delete
                                                 </button>
                                             </div>
                                         </td>
