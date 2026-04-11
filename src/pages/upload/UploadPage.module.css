@@ -1,0 +1,293 @@
+/**
+ * ====== Layout ======
+ *
+ * @format
+ */
+
+.page {
+	display: flex;
+	height: 100vh;
+	background: #f5f6fa;
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ====== Left Panel ====== */
+.leftPanel {
+	width: 300px;
+	min-width: 260px;
+	background: #ffffff;
+	border-right: 1px solid #e0e0e0;
+	display: flex;
+	flex-direction: column;
+	padding: 32px 24px;
+	box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+}
+
+.panelTitle {
+	font-size: 18px;
+	font-weight: 700;
+	color: #1a1a2e;
+	margin: 0 0 28px 0;
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.label {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #555;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+}
+
+.input,
+.select {
+	padding: 9px 12px;
+	border: 1px solid #d0d0d0;
+	border-radius: 8px;
+	font-size: 14px;
+	color: #1a1a2e;
+	background: #fafafa;
+	transition:
+		border-color 0.2s,
+		box-shadow 0.2s;
+	outline: none;
+}
+
+.input:focus,
+.select:focus {
+	border-color: #4f6ef7;
+	box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.12);
+	background: #fff;
+}
+
+.fileInput {
+	padding: 6px 0;
+	font-size: 13px;
+	color: #555;
+}
+
+.fileInput::file-selector-button {
+	padding: 6px 14px;
+	background: #eef0fb;
+	border: 1px solid #c3caf5;
+	border-radius: 6px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #4f6ef7;
+	cursor: pointer;
+	margin-right: 10px;
+	transition: background 0.2s;
+}
+
+.fileInput::file-selector-button:hover {
+	background: #d8dcf8;
+}
+
+.uploadBtn {
+	margin-top: 8px;
+	padding: 11px;
+	background: #4f6ef7;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	font-size: 14px;
+	font-weight: 700;
+	cursor: pointer;
+	transition:
+		background 0.2s,
+		transform 0.1s;
+	letter-spacing: 0.3px;
+}
+
+.uploadBtn:hover {
+	background: #3a58e0;
+}
+
+.uploadBtn:active {
+	transform: scale(0.98);
+}
+
+.uploadBtn:disabled {
+	background: #b0b8f5;
+	cursor: not-allowed;
+}
+
+.errorMsg {
+	margin-top: 8px;
+	font-size: 13px;
+	color: #e53935;
+	background: #fff3f3;
+	border: 1px solid #ffc5c5;
+	border-radius: 6px;
+	padding: 8px 10px;
+}
+
+/* ====== Right Panel ====== */
+.rightPanel {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	padding: 32px 36px;
+	overflow-y: auto;
+}
+
+.rightHeader {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 24px;
+}
+
+.rightTitle {
+	font-size: 22px;
+	font-weight: 700;
+	color: #1a1a2e;
+	margin: 0;
+}
+
+.count {
+	font-size: 13px;
+	color: #888;
+	background: #e8eaf6;
+	border-radius: 20px;
+	padding: 3px 12px;
+	font-weight: 600;
+}
+
+/* ====== Table ====== */
+.tableWrapper {
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+	overflow: hidden;
+}
+
+.table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.table thead tr {
+	background: #f0f2ff;
+}
+
+.table th {
+	text-align: left;
+	padding: 14px 16px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #666;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	border-bottom: 1px solid #e8eaf6;
+}
+
+.table td {
+	padding: 13px 16px;
+	color: #333;
+	border-bottom: 1px solid #f0f0f0;
+	vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.table tbody tr:hover {
+	background: #f9faff;
+}
+
+.typeBadge {
+	display: inline-block;
+	padding: 3px 10px;
+	border-radius: 20px;
+	font-size: 12px;
+	font-weight: 600;
+	background: #e3f2fd;
+	color: #1565c0;
+}
+
+.typeBadge.contract {
+	background: #e8f5e9;
+	color: #2e7d32;
+}
+.typeBadge.report {
+	background: #fff3e0;
+	color: #e65100;
+}
+.typeBadge.invoice {
+	background: #fce4ec;
+	color: #c62828;
+}
+.typeBadge.other {
+	background: #f3e5f5;
+	color: #6a1b9a;
+}
+
+.fileSize {
+	color: #999;
+	font-size: 12px;
+}
+
+.actions {
+	display: flex;
+	gap: 8px;
+}
+
+.btnDownload,
+.btnDelete {
+	padding: 6px 14px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	border: none;
+	transition: background 0.2s;
+}
+
+.btnDownload {
+	background: #e8f0fe;
+	color: #1a73e8;
+}
+
+.btnDownload:hover {
+	background: #c9d8fb;
+}
+
+.btnDelete {
+	background: #fde8e8;
+	color: #d32f2f;
+}
+
+.btnDelete:hover {
+	background: #f8c5c5;
+}
+
+/* ====== Empty State ====== */
+.empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 80px 0;
+	color: #aaa;
+	gap: 12px;
+}
+
+.emptyIcon {
+	font-size: 52px;
+}
+
+.emptyText {
+	font-size: 15px;
+	font-weight: 500;
+}
