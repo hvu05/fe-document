@@ -6,6 +6,9 @@ export const API_CONFIG = {
         login: '/auth/login',
         profile: '/auth/profile',
     },
+    departments: {
+        list: '/departments',
+    },
     documents: {
         myDocuments: '/documents/my',
         search: '/documents/search',

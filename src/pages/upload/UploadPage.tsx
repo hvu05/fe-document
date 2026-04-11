@@ -1,8 +1,9 @@
 /** @format */
 
 import { useRef, useState, useEffect } from 'react';
+import departmentService from '../../services/departmentService.ts';
 import documentService from '../../services/documentService';
-import type { Document } from '../../types/document';
+import type { Department, Document } from '../../types/document';
 import styles from './UploadPage.module.css';
 
 const DOCUMENT_TYPES = ['Contract', 'Report', 'Invoice', 'Other'];
@@ -24,6 +25,8 @@ const UploadPage = () => {
     const [title, setTitle] = useState('');
     const [type, setType] = useState(DOCUMENT_TYPES[0]);
     const [departmentId, setDepartmentId] = useState('');
+    const [departments, setDepartments] = useState<Department[]>([]);
+    const [loadingDepartments, setLoadingDepartments] = useState(true);
 
     // New version fields
     const [myDocuments, setMyDocuments] = useState<Document[]>([]);
@@ -68,6 +71,21 @@ const UploadPage = () => {
         };
     }, [previewFile]);
 
+    useEffect(() => {
+        const loadDepartments = async () => {
+            try {
+                const response = await departmentService.getDepartments();
+                setDepartments(response.data);
+            } catch {
+                setDepartments([]);
+            } finally {
+                setLoadingDepartments(false);
+            }
+        };
+
+        loadDepartments();
+    }, []);
+
     // Fetch the user's documents when switching to version mode.
     useEffect(() => {
         if (mode === 'version') {
@@ -102,7 +120,7 @@ const UploadPage = () => {
             return;
         }
         if (!departmentId.trim() || Number(departmentId) <= 0) {
-            setError('Please enter a valid department ID.');
+            setError('Please select a department.');
             return;
         }
         if (!selectedFile) {
@@ -346,13 +364,12 @@ const UploadPage = () => {
                                     </div>
 
                                     <div className={styles.inputGrid}>
-                                        <label className={styles.label}>
-                                            Department ID
-                                            <input
-                                                className={styles.input}
-                                                type="number"
-                                                min="1"
-                                                placeholder="Example: 1"
+                                        <label
+                                            className={`${styles.label} ${styles.fullWidth}`}
+                                        >
+                                            Department
+                                            <select
+                                                className={styles.select}
                                                 value={departmentId}
                                                 onChange={(e) => {
                                                     setDepartmentId(
@@ -360,22 +377,29 @@ const UploadPage = () => {
                                                     );
                                                     resetMessages();
                                                 }}
-                                            />
+                                                disabled={loadingDepartments}
+                                            >
+                                                <option value="">
+                                                    {loadingDepartments
+                                                        ? 'Loading departments...'
+                                                        : departments.length > 0
+                                                          ? 'Select a department'
+                                                          : 'No departments available'}
+                                                </option>
+                                                {departments.map(
+                                                    (department) => (
+                                                        <option
+                                                            key={department.id}
+                                                            value={
+                                                                department.id
+                                                            }
+                                                        >
+                                                            {department.name}
+                                                        </option>
+                                                    )
+                                                )}
+                                            </select>
                                         </label>
-
-                                        <div className={styles.infoPanel}>
-                                            <div className={styles.infoLabel}>
-                                                Database mapping
-                                            </div>
-                                            <div className={styles.infoText}>
-                                                `documents.title`,
-                                                `documents.type`, and
-                                                `documents.department_id` are
-                                                created together with
-                                                `document_versions.version_number
-                                                = 1`.
-                                            </div>
-                                        </div>
                                     </div>
                                 </>
                             ) : (

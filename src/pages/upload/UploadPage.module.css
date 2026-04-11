@@ -235,6 +235,10 @@
     gap: 16px;
 }
 
+.fullWidth {
+    grid-column: 1 / -1;
+}
+
 .label {
     display: flex;
     flex-direction: column;
@@ -244,31 +248,6 @@
     color: #555;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-}
-
-.infoPanel {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 8px;
-    padding: 14px 16px;
-    border-radius: 16px;
-    background: linear-gradient(180deg, #f7f9ff 0%, #eef2ff 100%);
-    border: 1px solid #dbe4ff;
-}
-
-.infoLabel {
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #4f6ef7;
-}
-
-.infoText {
-    font-size: 14px;
-    line-height: 1.6;
-    color: #59627f;
 }
 
 .input,

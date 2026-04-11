@@ -11,6 +11,11 @@ export interface DocumentVersion {
     createdAt: string;
 }
 
+export interface Department {
+    id: number;
+    name: string;
+}
+
 export interface Document {
     id: number;
     title: string;
