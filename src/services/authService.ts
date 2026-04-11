@@ -3,20 +3,32 @@ import API_CONFIG from '../config/api';
 
 // ===================== Types =====================
 
+export interface Department {
+    id: number;
+    name: string;
+}
+
+export interface DepartmentsResponse {
+    code: number;
+    message: string;
+    data: Department[];
+}
+
 export interface RegisterPayload {
+    firstName: string;
+    lastName: string;
     username: string;
-    email: string;
     password: string;
-    phone?: string;
+    departmentId: number;
 }
 
 export interface RegisterResponse {
+    code: number;
     message: string;
-    userId: string;
 }
 
 export interface LoginPayload {
-    identifier: string; // email, username hoặc phone
+    username: string; // email, username hoặc phone
     password: string;
 }
 
@@ -48,6 +60,10 @@ export interface UserProfile {
 // ===================== API Calls =====================
 
 const authService = {
+    getDepartments: () => {
+        return axiosClient.get<DepartmentsResponse>('/departments');
+    },
+
     register: (data: RegisterPayload) => {
         return axiosClient.post<RegisterResponse>(
             API_CONFIG.auth.register,

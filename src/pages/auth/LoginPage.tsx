@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
 import API_CONFIG from '../../config/api';
+import type { LoginPayload } from '../../services/authService';
 import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
@@ -64,6 +65,8 @@ const LoginPage: React.FC = () => {
                 )}
 
                 <form className="login-form" onSubmit={handleLogin}>
+                    {error && <div style={{ color: '#dc2626', marginBottom: '10px', fontSize: '0.9rem' }}>{error}</div>}
+
                     <div className="form-group">
                         <input
                             id="identifier"

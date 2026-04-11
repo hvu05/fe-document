@@ -1,6 +1,15 @@
-import axiosClient from './axiosClient';
-import type { Document } from '../types/document';
 import API_CONFIG from '../config/api';
+import type { Document, UploadedDocument } from '../types/document';
+import axiosClient from './axiosClient';
+
+export interface UploadResponse {
+    message: string;
+    document: UploadedDocument;
+}
+
+export interface GetDocumentsResponse {
+    documents: UploadedDocument[];
+}
 
 const documentService = {
     getMyDocuments: () => {
@@ -31,7 +40,23 @@ const documentService = {
             String(data.departmentId)
         );
         formData.append(API_CONFIG.formFields.file, data.file);
-        return axiosClient.post<Document>(
+
+        return axiosClient.post<UploadResponse>(
+            API_CONFIG.documents.create,
+            formData,
+            {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            }
+        );
+    },
+
+    uploadDocument: (file: File, title: string, type: string) => {
+        const formData = new FormData();
+        formData.append(API_CONFIG.formFields.file, file);
+        formData.append(API_CONFIG.formFields.title, title);
+        formData.append(API_CONFIG.formFields.type, type);
+
+        return axiosClient.post<UploadResponse>(
             API_CONFIG.documents.create,
             formData,
             {
@@ -43,21 +68,30 @@ const documentService = {
     uploadNewVersion: (documentId: number, file: File) => {
         const formData = new FormData();
         formData.append(API_CONFIG.formFields.file, file);
+
         return axiosClient.post<Document>(
             API_CONFIG.documents.createVersion(documentId),
             formData,
-            { headers: { 'Content-Type': 'multipart/form-data' } }
+            {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            }
         );
     },
 
-    deleteDocument: (id: number) => {
-        return axiosClient.delete(API_CONFIG.documents.delete(id));
+    getDocuments: () => {
+        return axiosClient.get<GetDocumentsResponse>('/documents');
+    },
+
+    deleteDocument: (id: number | string) => {
+        return axiosClient.delete(`/documents/${id}`);
     },
 
     downloadVersion: (documentId: number, versionId: number) => {
         return axiosClient.get(
             API_CONFIG.documents.downloadVersion(documentId, versionId),
-            { responseType: 'blob' }
+            {
+                responseType: 'blob',
+            }
         );
     },
 };

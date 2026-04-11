@@ -1,7 +1,7 @@
 /** @format */
 
-import { useRef, useState, useEffect } from 'react';
-import departmentService from '../../services/departmentService.ts';
+import { useEffect, useRef, useState } from 'react';
+import departmentService from '../../services/departmentService';
 import documentService from '../../services/documentService';
 import type { Department, Document } from '../../types/document';
 import styles from './UploadPage.module.css';
@@ -18,29 +18,30 @@ function isTextPreviewable(file: File): boolean {
     );
 }
 
+function formatFileSize(bytes: number): string {
+    if (!bytes) return '0 B';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 const UploadPage = () => {
     const [mode, setMode] = useState<UploadMode>('new');
-
-    // New document fields
     const [title, setTitle] = useState('');
     const [type, setType] = useState(DOCUMENT_TYPES[0]);
     const [departmentId, setDepartmentId] = useState('');
     const [departments, setDepartments] = useState<Department[]>([]);
     const [loadingDepartments, setLoadingDepartments] = useState(true);
-
-    // New version fields
     const [myDocuments, setMyDocuments] = useState<Document[]>([]);
     const [selectedDocId, setSelectedDocId] = useState<number | null>(null);
     const [loadingDocs, setLoadingDocs] = useState(false);
-
-    // Shared
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [uploading, setUploading] = useState(false);
     const [previewFile, setPreviewFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState('');
     const [previewText, setPreviewText] = useState('');
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -83,27 +84,28 @@ const UploadPage = () => {
             }
         };
 
-        loadDepartments();
+        void loadDepartments();
     }, []);
 
-    // Fetch the user's documents when switching to version mode.
     useEffect(() => {
-        if (mode === 'version') {
-            setLoadingDocs(true);
-            documentService
-                .getMyDocuments()
-                .then((res) => setMyDocuments(res.data))
-                .catch(() => setMyDocuments([]))
-                .finally(() => setLoadingDocs(false));
-        }
+        if (mode !== 'version') return;
+
+        const loadMyDocuments = async () => {
+            try {
+                setLoadingDocs(true);
+                const response = await documentService.getMyDocuments();
+                setMyDocuments(response.data);
+            } catch {
+                setMyDocuments([]);
+            } finally {
+                setLoadingDocs(false);
+            }
+        };
+
+        void loadMyDocuments();
     }, [mode]);
 
-    const getNextVersion = (doc: Document): number => {
-        if (!doc.versions || doc.versions.length === 0) return 1;
-        return Math.max(...doc.versions.map((v) => v.versionNumber)) + 1;
-    };
-
-    const selectedDoc = myDocuments.find((d) => d.id === selectedDocId) ?? null;
+    const selectedDoc = myDocuments.find((doc) => doc.id === selectedDocId) ?? null;
     const previewKind = !previewFile
         ? 'empty'
         : previewFile.type.startsWith('image/')
@@ -114,12 +116,38 @@ const UploadPage = () => {
               ? 'text'
               : 'file';
 
+    const resetMessages = () => {
+        setError('');
+        setSuccess('');
+    };
+
+    const resetForm = () => {
+        setTitle('');
+        setType(DOCUMENT_TYPES[0]);
+        setDepartmentId('');
+        setSelectedFile(null);
+        setPreviewFile(null);
+        setSelectedDocId(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const switchMode = (nextMode: UploadMode) => {
+        setMode(nextMode);
+        resetMessages();
+        resetForm();
+    };
+
+    const getNextVersion = (doc: Document): number => {
+        if (!doc.versions || doc.versions.length === 0) return 1;
+        return Math.max(...doc.versions.map((version) => version.versionNumber)) + 1;
+    };
+
     const handleUploadNew = async () => {
         if (!title.trim()) {
             setError('Please enter a document title.');
             return;
         }
-        if (!departmentId.trim() || Number(departmentId) <= 0) {
+        if (!departmentId || Number(departmentId) <= 0) {
             setError('Please select a department.');
             return;
         }
@@ -127,27 +155,20 @@ const UploadPage = () => {
             setError('Please select a file to upload.');
             return;
         }
-        setError('');
-        setSuccess('');
-        setUploading(true);
 
         try {
+            setUploading(true);
+            resetMessages();
             await documentService.uploadNewDocument({
                 title: title.trim(),
                 type,
                 departmentId: Number(departmentId),
                 file: selectedFile,
             });
-            setSuccess(
-                'Document uploaded successfully. Version 1 was created automatically.'
-            );
-            setTitle('');
-            setType(DOCUMENT_TYPES[0]);
-            setDepartmentId('');
-            setSelectedFile(null);
-            if (fileInputRef.current) fileInputRef.current.value = '';
+            setSuccess('Document uploaded successfully.');
+            resetForm();
         } catch {
-            setError('Upload failed. Please try again.');
+            setError('Failed to upload document.');
         } finally {
             setUploading(false);
         }
@@ -155,150 +176,131 @@ const UploadPage = () => {
 
     const handleUploadVersion = async () => {
         if (!selectedDocId) {
-            setError('Please select a document for the new version upload.');
+            setError('Please choose a document to upload a new version for.');
             return;
         }
         if (!selectedFile) {
             setError('Please select a file to upload.');
             return;
         }
-        setError('');
-        setSuccess('');
-        setUploading(true);
 
         try {
-            const nextVer = selectedDoc ? getNextVersion(selectedDoc) : '?';
+            setUploading(true);
+            resetMessages();
             await documentService.uploadNewVersion(selectedDocId, selectedFile);
-            setSuccess(
-                `Version ${nextVer} uploaded successfully for "${selectedDoc?.title}".`
-            );
-            setSelectedDocId(null);
-            setSelectedFile(null);
-            if (fileInputRef.current) fileInputRef.current.value = '';
-            // Refresh the document list.
-            const res = await documentService.getMyDocuments();
-            setMyDocuments(res.data);
+            setSuccess('New version uploaded successfully.');
+            const response = await documentService.getMyDocuments();
+            setMyDocuments(response.data);
+            resetForm();
         } catch {
-            setError('New version upload failed. Please try again.');
+            setError('Failed to upload new version.');
         } finally {
             setUploading(false);
         }
     };
 
-    const handleSubmit = () => {
-        if (mode === 'new') handleUploadNew();
-        else handleUploadVersion();
+    const handleSubmit = async () => {
+        if (mode === 'new') {
+            await handleUploadNew();
+            return;
+        }
+
+        await handleUploadVersion();
     };
 
-    const resetMessages = () => {
-        setError('');
-        setSuccess('');
-    };
+    const renderPreview = () => {
+        if (!previewFile) {
+            return (
+                <div className={styles.previewPlaceholder}>
+                    <span className={styles.previewIcon}>🗂</span>
+                    <div className={styles.previewFileName}>No file selected</div>
+                    <div className={styles.previewHint}>
+                        Choose a file to preview it before uploading.
+                    </div>
+                </div>
+            );
+        }
 
-    const switchMode = (newMode: UploadMode) => {
-        setMode(newMode);
-        setSelectedFile(null);
-        setSelectedDocId(null);
-        setError('');
-        setSuccess('');
-        if (fileInputRef.current) fileInputRef.current.value = '';
+        if (previewKind === 'image' && previewUrl) {
+            return (
+                <img
+                    src={previewUrl}
+                    alt={previewFile.name}
+                    className={styles.previewImage}
+                />
+            );
+        }
+
+        if (previewKind === 'pdf' && previewUrl) {
+            return (
+                <iframe
+                    src={previewUrl}
+                    title={previewFile.name}
+                    className={styles.previewEmbed}
+                />
+            );
+        }
+
+        if (previewKind === 'text') {
+            return <pre className={styles.previewText}>{previewText}</pre>;
+        }
+
+        return (
+            <div className={styles.previewPlaceholder}>
+                <span className={styles.previewIcon}>📄</span>
+                <div className={styles.previewFileName}>{previewFile.name}</div>
+                <div className={styles.previewHint}>
+                    This file type cannot be previewed inline, but it is ready to upload.
+                </div>
+            </div>
+        );
     };
 
     return (
         <div className={styles.page}>
             <div className={styles.hero}>
-                <div className={styles.heroCopy}>
+                <section className={styles.heroCopy}>
                     <div className={styles.previewPanel}>
                         <div className={styles.previewHeader}>
                             <div>
-                                <div className={styles.previewEyebrow}>
-                                    Live Preview
-                                </div>
-                                <h2 className={styles.previewTitle}>
-                                    Uploaded Document Viewer
-                                </h2>
+                                <div className={styles.previewEyebrow}>Preview</div>
+                                <h1 className={styles.previewTitle}>
+                                    {mode === 'new'
+                                        ? 'Prepare a new document upload'
+                                        : 'Prepare a new document version'}
+                                </h1>
                             </div>
-                            {previewFile && (
-                                <span className={styles.previewBadge}>
-                                    {previewKind.toUpperCase()}
-                                </span>
-                            )}
+                            <div className={styles.previewBadge}>
+                                {previewKind === 'empty'
+                                    ? 'Waiting'
+                                    : previewKind.toUpperCase()}
+                            </div>
                         </div>
 
-                        <div className={styles.previewFrame}>
-                            {previewKind === 'image' && previewUrl && (
-                                <img
-                                    className={styles.previewImage}
-                                    src={previewUrl}
-                                    alt={previewFile?.name ?? 'Preview'}
-                                />
-                            )}
+                        <div className={styles.previewFrame}>{renderPreview()}</div>
 
-                            {previewKind === 'pdf' && previewUrl && (
-                                <iframe
-                                    className={styles.previewEmbed}
-                                    src={previewUrl}
-                                    title={previewFile?.name ?? 'PDF preview'}
-                                />
-                            )}
-
-                            {previewKind === 'text' && (
-                                <pre className={styles.previewText}>
-                                    {previewText}
-                                </pre>
-                            )}
-
-                            {previewKind === 'file' && previewFile && (
-                                <div className={styles.previewPlaceholder}>
-                                    <div className={styles.previewIcon}>📄</div>
-                                    <div className={styles.previewFileName}>
-                                        {previewFile.name}
-                                    </div>
-                                    <div className={styles.previewHint}>
-                                        Browser preview is not available for
-                                        this file type, but the selected file is
-                                        ready to upload.
-                                    </div>
-                                </div>
-                            )}
-
-                            {previewKind === 'empty' && (
-                                <div className={styles.previewPlaceholder}>
-                                    <div className={styles.previewIcon}>🗂</div>
-                                    <div className={styles.previewFileName}>
-                                        No file selected yet
-                                    </div>
-                                    <div className={styles.previewHint}>
-                                        Choose a file on the right to preview
-                                        the uploaded document here.
-                                    </div>
-                                </div>
-                            )}
+                        <div className={styles.previewMetaBar}>
+                            <span>
+                                File: {previewFile?.name ?? 'No file selected'}
+                            </span>
+                            <span>
+                                Size: {previewFile ? formatFileSize(previewFile.size) : '0 B'}
+                            </span>
                         </div>
-
-                        {previewFile && (
-                            <div className={styles.previewMetaBar}>
-                                <span>{previewFile.name}</span>
-                                <span>
-                                    {(previewFile.size / 1024 / 1024).toFixed(
-                                        2
-                                    )}{' '}
-                                    MB
-                                </span>
-                            </div>
-                        )}
                     </div>
-                </div>
+                </section>
 
-                <div className={styles.formShell}>
+                <section className={styles.formShell}>
                     <div className={styles.tabs}>
                         <button
+                            type="button"
                             className={`${styles.tab} ${mode === 'new' ? styles.tabActive : ''}`}
                             onClick={() => switchMode('new')}
                         >
                             📄 New Document
                         </button>
                         <button
+                            type="button"
                             className={`${styles.tab} ${mode === 'version' ? styles.tabActive : ''}`}
                             onClick={() => switchMode('version')}
                         >
@@ -312,18 +314,16 @@ const UploadPage = () => {
                                 <h2 className={styles.formTitle}>
                                     {mode === 'new'
                                         ? 'Create a New Document'
-                                        : 'Upload a New Version for an Existing Document'}
+                                        : 'Upload a New Version'}
                                 </h2>
                                 <p className={styles.formSubtitle}>
                                     {mode === 'new'
-                                        ? 'The system will create the document and its first version after upload.'
-                                        : 'Select the correct target document and the system will calculate the next version number.'}
+                                        ? 'Add document metadata, pick a file, and upload the first version.'
+                                        : 'Select an existing document and the next version number will be inferred automatically.'}
                                 </p>
                             </div>
                             <div className={styles.formBadge}>
-                                {mode === 'new'
-                                    ? 'Insert + version 1'
-                                    : 'Append next version'}
+                                {mode === 'new' ? 'Version 1' : 'Next version'}
                             </div>
                         </div>
 
@@ -338,8 +338,8 @@ const UploadPage = () => {
                                                 type="text"
                                                 placeholder="Enter document title..."
                                                 value={title}
-                                                onChange={(e) => {
-                                                    setTitle(e.target.value);
+                                                onChange={(event) => {
+                                                    setTitle(event.target.value);
                                                     resetMessages();
                                                 }}
                                             />
@@ -350,13 +350,14 @@ const UploadPage = () => {
                                             <select
                                                 className={styles.select}
                                                 value={type}
-                                                onChange={(e) =>
-                                                    setType(e.target.value)
-                                                }
+                                                onChange={(event) => {
+                                                    setType(event.target.value);
+                                                    resetMessages();
+                                                }}
                                             >
-                                                {DOCUMENT_TYPES.map((t) => (
-                                                    <option key={t} value={t}>
-                                                        {t}
+                                                {DOCUMENT_TYPES.map((documentType) => (
+                                                    <option key={documentType} value={documentType}>
+                                                        {documentType}
                                                     </option>
                                                 ))}
                                             </select>
@@ -364,17 +365,13 @@ const UploadPage = () => {
                                     </div>
 
                                     <div className={styles.inputGrid}>
-                                        <label
-                                            className={`${styles.label} ${styles.fullWidth}`}
-                                        >
+                                        <label className={`${styles.label} ${styles.fullWidth}`}>
                                             Department
                                             <select
                                                 className={styles.select}
                                                 value={departmentId}
-                                                onChange={(e) => {
-                                                    setDepartmentId(
-                                                        e.target.value
-                                                    );
+                                                onChange={(event) => {
+                                                    setDepartmentId(event.target.value);
                                                     resetMessages();
                                                 }}
                                                 disabled={loadingDepartments}
@@ -386,18 +383,11 @@ const UploadPage = () => {
                                                           ? 'Select a department'
                                                           : 'No departments available'}
                                                 </option>
-                                                {departments.map(
-                                                    (department) => (
-                                                        <option
-                                                            key={department.id}
-                                                            value={
-                                                                department.id
-                                                            }
-                                                        >
-                                                            {department.name}
-                                                        </option>
-                                                    )
-                                                )}
+                                                {departments.map((department) => (
+                                                    <option key={department.id} value={department.id}>
+                                                        {department.name}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </label>
                                     </div>
@@ -407,200 +397,62 @@ const UploadPage = () => {
                                     <label className={styles.label}>
                                         Select an Existing Document
                                     </label>
+
                                     {loadingDocs ? (
-                                        <div className={styles.loading}>
-                                            Loading document list...
-                                        </div>
+                                        <div className={styles.loading}>Loading document list...</div>
                                     ) : myDocuments.length === 0 ? (
                                         <div className={styles.loading}>
-                                            You do not have any documents yet.{' '}
-                                            <button
-                                                className={styles.tab}
-                                                onClick={() =>
-                                                    switchMode('new')
-                                                }
-                                            >
-                                                Upload a New Document
-                                            </button>
+                                            You do not have any documents yet.
                                         </div>
                                     ) : (
                                         <div className={styles.docSelector}>
                                             {myDocuments.map((doc) => (
-                                                <div
+                                                <button
+                                                    type="button"
                                                     key={doc.id}
                                                     className={`${styles.docOption} ${selectedDocId === doc.id ? styles.docOptionSelected : ''}`}
                                                     onClick={() => {
-                                                        setSelectedDocId(
-                                                            doc.id
-                                                        );
+                                                        setSelectedDocId(doc.id);
                                                         resetMessages();
                                                     }}
                                                 >
-                                                    <div
-                                                        className={
-                                                            styles.docOptionInfo
-                                                        }
-                                                    >
-                                                        <span
-                                                            className={
-                                                                styles.docOptionTitle
-                                                            }
-                                                        >
-                                                            {doc.title}
-                                                        </span>
-                                                        <span
-                                                            className={
-                                                                styles.docOptionMeta
-                                                            }
-                                                        >
-                                                            {doc.type} •
-                                                            Current: v
-                                                            {doc.latestVersion
-                                                                ?.versionNumber ??
-                                                                doc
-                                                                    .versions?.[0]
-                                                                    ?.versionNumber ??
-                                                                1}
+                                                    <div className={styles.docOptionInfo}>
+                                                        <span className={styles.docOptionTitle}>{doc.title}</span>
+                                                        <span className={styles.docOptionMeta}>
+                                                            {doc.type} • Current: v
+                                                            {doc.latestVersion?.versionNumber ?? doc.versions?.[0]?.versionNumber ?? 1}
                                                         </span>
                                                     </div>
-                                                    <span
-                                                        className={
-                                                            styles.docOptionVersion
-                                                        }
-                                                    >
+                                                    <span className={styles.docOptionVersion}>
                                                         → v{getNextVersion(doc)}
                                                     </span>
-                                                </div>
+                                                </button>
                                             ))}
                                         </div>
                                     )}
 
                                     {selectedDoc && (
-                                        <div
-                                            className={
-                                                styles.selectedDocumentCard
-                                            }
-                                        >
-                                            <div
-                                                className={
-                                                    styles.selectedHeader
-                                                }
-                                            >
+                                        <div className={styles.selectedDocumentCard}>
+                                            <div className={styles.selectedHeader}>
                                                 <div>
-                                                    <div
-                                                        className={
-                                                            styles.selectedLabel
-                                                        }
-                                                    >
-                                                        Selected Document
-                                                    </div>
-                                                    <div
-                                                        className={
-                                                            styles.selectedTitle
-                                                        }
-                                                    >
-                                                        {selectedDoc.title}
-                                                    </div>
+                                                    <div className={styles.selectedLabel}>Selected Document</div>
+                                                    <div className={styles.selectedTitle}>{selectedDoc.title}</div>
                                                 </div>
-                                                <div
-                                                    className={
-                                                        styles.versionInfo
-                                                    }
-                                                >
-                                                    <span
-                                                        className={
-                                                            styles.versionInfoIcon
-                                                        }
-                                                    >
-                                                        ℹ️
-                                                    </span>
-                                                    New version: v
-                                                    {getNextVersion(
-                                                        selectedDoc
-                                                    )}
+                                                <div className={styles.versionInfo}>
+                                                    <span className={styles.versionInfoIcon}>📌</span>
+                                                    Next version: v{getNextVersion(selectedDoc)}
                                                 </div>
                                             </div>
+
                                             <div className={styles.metaGrid}>
-                                                <div
-                                                    className={styles.metaItem}
-                                                >
-                                                    <span
-                                                        className={
-                                                            styles.metaKey
-                                                        }
-                                                    >
-                                                        Document ID
-                                                    </span>
-                                                    <span
-                                                        className={
-                                                            styles.metaValue
-                                                        }
-                                                    >
-                                                        {selectedDoc.id}
-                                                    </span>
+                                                <div className={styles.metaItem}>
+                                                    <span className={styles.metaKey}>Type</span>
+                                                    <span className={styles.metaValue}>{selectedDoc.type}</span>
                                                 </div>
-                                                <div
-                                                    className={styles.metaItem}
-                                                >
-                                                    <span
-                                                        className={
-                                                            styles.metaKey
-                                                        }
-                                                    >
-                                                        Department ID
-                                                    </span>
-                                                    <span
-                                                        className={
-                                                            styles.metaValue
-                                                        }
-                                                    >
-                                                        {
-                                                            selectedDoc.departmentId
-                                                        }
-                                                    </span>
-                                                </div>
-                                                <div
-                                                    className={styles.metaItem}
-                                                >
-                                                    <span
-                                                        className={
-                                                            styles.metaKey
-                                                        }
-                                                    >
-                                                        Type
-                                                    </span>
-                                                    <span
-                                                        className={
-                                                            styles.metaValue
-                                                        }
-                                                    >
-                                                        {selectedDoc.type ||
-                                                            'Other'}
-                                                    </span>
-                                                </div>
-                                                <div
-                                                    className={styles.metaItem}
-                                                >
-                                                    <span
-                                                        className={
-                                                            styles.metaKey
-                                                        }
-                                                    >
-                                                        Current Version
-                                                    </span>
-                                                    <span
-                                                        className={
-                                                            styles.metaValue
-                                                        }
-                                                    >
-                                                        v
-                                                        {selectedDoc
-                                                            .latestVersion
-                                                            ?.versionNumber ??
-                                                            selectedDoc
-                                                                .versions?.[0]
-                                                                ?.versionNumber ??
-                                                            1}
+                                                <div className={styles.metaItem}>
+                                                    <span className={styles.metaKey}>Current Version</span>
+                                                    <span className={styles.metaValue}>
+                                                        v{selectedDoc.latestVersion?.versionNumber ?? selectedDoc.versions?.[0]?.versionNumber ?? 1}
                                                     </span>
                                                 </div>
                                             </div>
@@ -615,32 +467,26 @@ const UploadPage = () => {
                                     ref={fileInputRef}
                                     className={styles.fileInput}
                                     type="file"
-                                    onChange={(e) => {
-                                        const file =
-                                            e.target.files?.[0] ?? null;
+                                    onChange={(event) => {
+                                        const file = event.target.files?.[0] ?? null;
                                         setSelectedFile(file);
-                                        if (file) {
-                                            setPreviewFile(file);
-                                        }
+                                        setPreviewFile(file);
                                         resetMessages();
                                     }}
                                 />
                             </label>
 
-                            {error && (
-                                <p className={styles.errorMsg}>{error}</p>
-                            )}
-                            {success && (
-                                <p className={styles.successMsg}>{success}</p>
-                            )}
+                            {error && <p className={styles.errorMsg}>{error}</p>}
+                            {success && <p className={styles.successMsg}>{success}</p>}
 
                             <button
+                                type="button"
                                 className={styles.uploadBtn}
-                                onClick={handleSubmit}
+                                onClick={() => void handleSubmit()}
                                 disabled={
                                     uploading ||
                                     !selectedFile ||
-                                    (mode === 'new' && !title.trim()) ||
+                                    (mode === 'new' && (!title.trim() || !departmentId)) ||
                                     (mode === 'version' && !selectedDocId)
                                 }
                             >
@@ -652,7 +498,7 @@ const UploadPage = () => {
                             </button>
                         </div>
                     </div>
-                </div>
+                </section>
             </div>
         </div>
     );
