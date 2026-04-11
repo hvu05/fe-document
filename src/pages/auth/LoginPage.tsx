@@ -1,16 +1,54 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../../services/authService';
+import API_CONFIG from '../../config/api';
 import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
-    const [username, setUsername] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Logging in with:', { username, password });
-        // navigate('/documents');
+        setError('');
+
+        if (!identifier.trim() || !password.trim()) {
+            setError('Please enter your email/username and password.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await authService.login({
+                identifier: identifier.trim(),
+                password,
+            });
+
+            localStorage.setItem(
+                API_CONFIG.storageKeys.accessToken,
+                response.data.access_token
+            );
+            localStorage.setItem(
+                API_CONFIG.storageKeys.user,
+                JSON.stringify(response.data.user)
+            );
+
+            navigate('/');
+        } catch (err: unknown) {
+            if (err && typeof err === 'object' && 'response' in err) {
+                const axiosErr = err as {
+                    response?: { data?: { message?: string } };
+                };
+                setError(axiosErr.response?.data?.message || 'Login failed.');
+            } else {
+                setError('Login failed. Please try again.');
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -21,15 +59,19 @@ const LoginPage: React.FC = () => {
                     <p>Login to access your documents</p>
                 </div>
 
+                {error && (
+                    <div className="auth-alert auth-alert-error">{error}</div>
+                )}
+
                 <form className="login-form" onSubmit={handleLogin}>
                     <div className="form-group">
                         <input
-                            id="username"
+                            id="identifier"
                             type="text"
                             className="input-field"
-                            placeholder="get@dept.gov"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="Email or username"
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
                             required
                         />
                     </div>
@@ -55,8 +97,12 @@ const LoginPage: React.FC = () => {
                         </a>
                     </div>
 
-                    <button type="submit" className="btn-primary">
-                        Log in
+                    <button
+                        type="submit"
+                        className="btn-primary"
+                        disabled={loading}
+                    >
+                        {loading ? 'Signing in...' : 'Log in'}
                     </button>
                 </form>
             </div>

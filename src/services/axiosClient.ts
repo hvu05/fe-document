@@ -1,4 +1,5 @@
 import axios from 'axios';
+import API_CONFIG from '../config/api';
 
 const axiosClient = axios.create({
     baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
@@ -7,10 +8,10 @@ const axiosClient = axios.create({
     },
 });
 
-// Request interceptor — tự động gắn Bearer token vào header
+// Request interceptor - automatically attach the Bearer token.
 axiosClient.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('access_token');
+        const token = localStorage.getItem(API_CONFIG.storageKeys.accessToken);
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -21,15 +22,15 @@ axiosClient.interceptors.request.use(
     }
 );
 
-// Response interceptor — xử lý lỗi chung (401, 403, 500...)
+// Response interceptor - handle common API errors.
 axiosClient.interceptors.response.use(
     (response) => {
         return response;
     },
     (error) => {
         if (error.response?.status === 401) {
-            // Token hết hạn hoặc không hợp lệ → redirect về login
-            localStorage.removeItem('access_token');
+            localStorage.removeItem(API_CONFIG.storageKeys.accessToken);
+            localStorage.removeItem(API_CONFIG.storageKeys.user);
             window.location.href = '/login';
         }
         return Promise.reject(error);
