@@ -27,7 +27,7 @@ export interface RegisterResponse {
 }
 
 export interface LoginPayload {
-    identifier: string; // email, username hoặc phone
+    username: string; // email, username hoặc phone
     password: string;
 }
 
