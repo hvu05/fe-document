@@ -66,11 +66,6 @@ body {
 .input-field:focus {
   border-color: var(--accent-blue);
   box-shadow: 0 0 0 3px rgba(0, 98, 255, 0.15);
-#root {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 .input-field::placeholder {
@@ -103,4 +98,4 @@ body {
 h1, h2, h3 {
   font-weight: 600;
   letter-spacing: -0.5px;
-}}
+}
