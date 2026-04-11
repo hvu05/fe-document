@@ -9,6 +9,10 @@ import ProfilePage from '../pages/profile/ProfilePage';
 
 const router = createBrowserRouter([
     {
+        path: '/',
+        element: <HomePage />,
+    },
+    {
         path: '/login',
         element: <LoginPage />,
     },

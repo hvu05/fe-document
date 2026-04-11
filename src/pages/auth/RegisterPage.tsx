@@ -1,21 +1,49 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
+import type { Department } from '../../services/authService';
+
 import './AuthPage.css';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
         username: '',
-        email: '',
         password: '',
-        confirmPassword: '',
-        phone: '',
+        departmentId: 0,
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [departments, setDepartments] = useState<Department[]>([]);
+
+    useEffect(() => {
+        const fetchDepartments = async () => {
+            // try {
+            //     const response = await authService.getDepartments();
+            //     if (response.data && response.data.code === 200) {
+            //         setDepartments(response.data.data);
+            //     }
+            // } catch (err) {
+            //     console.error('Failed to fetch departments', err);
+            // }
+            const department =  [
+            {
+                id: 1,
+                name: "department 1"
+            },
+            {
+                id: 2,
+                name: "department 2"
+            }
+        ]
+        setDepartments(department)
+        };
+        fetchDepartments();
+    }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,7 +56,7 @@ const RegisterPage = () => {
         setSuccess('');
 
         // Validate
-        if (!formData.username || !formData.email || !formData.password) {
+        if (!formData.firstName || !formData.username || !formData.password) {
             setError('Please fill in all required fields.');
             return;
         }
@@ -38,18 +66,15 @@ const RegisterPage = () => {
             return;
         }
 
-        if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match.');
-            return;
-        }
-
         try {
             setLoading(true);
-            const { confirmPassword, ...payload } = formData;
-            void confirmPassword; // avoid unused warning
-            await authService.register(payload);
-            setSuccess('Registration successful! Redirecting...');
-            setTimeout(() => navigate('/login'), 2000);
+            const response = await authService.register(formData);
+            if (response.data && response.data.code === 200) {
+                setSuccess('Registration successful! Redirecting...');
+                // setTimeout(() => navigate('/login'), 2000);
+            } else {
+                    setError(response.data?.message || 'Registration failed.');
+            }
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as {
@@ -85,41 +110,65 @@ const RegisterPage = () => {
 
                 <form onSubmit={handleSubmit} className="auth-form">
                     <div className="form-group">
-                        <label htmlFor="username">Username *</label>
+                        <label htmlFor="firstName">First name *</label>
+                        <input
+                            id="firstName"
+                            name="firstName"
+                            type="text"
+                            placeholder="First name"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                            autoComplete="given-name"
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="lastName">Last name *</label>
+                        <input
+                            id="lastName"
+                            name="lastName"
+                            type="text"
+                            placeholder="Last name"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            autoComplete="family-name"
+                        />
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="departmentId">Phòng ban</label>
+                        <select
+                            id="departmentId"
+                            name="departmentId"
+                            value={formData.departmentId}
+                            onChange={(e) => setFormData({ ...formData, departmentId: Number(e.target.value) })}
+                            style={{ 
+                                width: '100%', 
+                                padding: '10px', 
+                                border: '1px solid #ddd', 
+                                borderRadius: '4px', 
+                                marginTop: '5px' 
+                            }}
+                        >
+                            <option value={0}>-- Chọn phòng ban --</option>
+                            {departments.map((dept) => (
+                                <option key={dept.id} value={dept.id}>
+                                    {dept.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="username">username *</label>
                         <input
                             id="username"
                             name="username"
-                            type="text"
-                            placeholder="Enter username"
+                            type="username"
+                            placeholder="User name"
                             value={formData.username}
                             onChange={handleChange}
                             autoComplete="username"
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="email">Email *</label>
-                        <input
-                            id="email"
-                            name="email"
-                            type="email"
-                            placeholder="Enter email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            autoComplete="email"
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="phone">Phone Number</label>
-                        <input
-                            id="phone"
-                            name="phone"
-                            type="tel"
-                            placeholder="Enter phone number (optional)"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            autoComplete="tel"
                         />
                     </div>
 
@@ -129,27 +178,14 @@ const RegisterPage = () => {
                             id="password"
                             name="password"
                             type="password"
-                            placeholder="At least 6 characters"
+                            placeholder="Password at least 6 characters"
                             value={formData.password}
                             onChange={handleChange}
                             autoComplete="new-password"
                         />
                     </div>
 
-                    <div className="form-group">
-                        <label htmlFor="confirmPassword">
-                            Confirm Password *
-                        </label>
-                        <input
-                            id="confirmPassword"
-                            name="confirmPassword"
-                            type="password"
-                            placeholder="Confirm your password"
-                            value={formData.confirmPassword}
-                            onChange={handleChange}
-                            autoComplete="new-password"
-                        />
-                    </div>
+
 
                     <div className="auth-options">
                         <label className="remember-me">
