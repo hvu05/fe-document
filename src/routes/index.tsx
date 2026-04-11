@@ -4,18 +4,18 @@ import RegisterPage from '../pages/auth/RegisterPage';
 import UploadPage from '../pages/upload/UploadPage';
 
 const router = createBrowserRouter([
-  {
-    path: '/login',
-    element: <LoginPage />,
-  },
-  {
-    path: '/register',
-    element: <RegisterPage />,
-  },
-  {
-    path: '/upload',
-    element: <UploadPage />,
-  },
+    {
+        path: '/login',
+        element: <LoginPage />,
+    },
+    {
+        path: '/register',
+        element: <RegisterPage />,
+    },
+    {
+        path: '/upload',
+        element: <UploadPage />,
+    },
 ]);
 
 export default router;
