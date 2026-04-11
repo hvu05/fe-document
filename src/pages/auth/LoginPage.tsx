@@ -22,9 +22,9 @@ const LoginPage: React.FC = () => {
 
         try {
             setLoading(true);
-            const payload: LoginPayload = { identifier, password };
+            const payload: LoginPayload = { username: identifier, password };
             const response = await authService.login(payload);
-            
+
             // Lấy token và lưu
             const { access_token } = response.data;
             if (access_token) {
@@ -55,8 +55,8 @@ const LoginPage: React.FC = () => {
                 </div>
 
                 <form className="login-form" onSubmit={handleLogin}>
-                    {error && <div style={{color: '#dc2626', marginBottom: '10px', fontSize: '0.9rem'}}>{error}</div>}
-                    
+                    {error && <div style={{ color: '#dc2626', marginBottom: '10px', fontSize: '0.9rem' }}>{error}</div>}
+
                     <div className="form-group">
                         <input
                             id="identifier"
