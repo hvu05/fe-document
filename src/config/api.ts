@@ -9,7 +9,7 @@ export const API_CONFIG = {
     documents: {
         myDocuments: '/documents/my',
         search: '/documents/search',
-        create: '/documents',
+        create: '/documents/upload',
         detail: (documentId: number) => `/documents/${documentId}`,
         delete: (documentId: number) => `/documents/${documentId}`,
         createVersion: (documentId: number) =>
