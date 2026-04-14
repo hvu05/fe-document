@@ -4,6 +4,7 @@ import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import UploadPage from '../pages/upload/UploadPage';
 import MyDocuments from '../pages/documents/MyDocuments';
+import HomePage from '../pages/home/HomePage';
 import SearchPage from '../pages/search/SearchPage';
 import ProfilePage from '../pages/profile/ProfilePage';
 

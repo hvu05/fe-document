@@ -27,8 +27,18 @@ export interface UploadedDocument {
     id: string;
     title: string;
     type: string;
+    departmentId: number;
+    createdBy: string;
+    // The top-level file info can represent the latest version
     fileName: string;
     fileSize: number;
     createdAt: Date;
     fileUrl: string;
+    versionHistory: {
+        version: string;
+        fileName: string;
+        fileSize: number;
+        createdAt: Date;
+        fileUrl: string;
+    }[];
 }
