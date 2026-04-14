@@ -44,10 +44,10 @@ const UploadPage = () => {
             setError('Please enter a document title.');
             return;
         }
-        if (!departmentId.trim() || Number(departmentId) <= 0) {
-            setError('Please enter a valid department ID.');
-            return;
-        }
+        // if (!departmentId.trim() || Number(departmentId) <= 0) {
+        //     setError('Please enter a valid department ID.');
+        //     return;
+        // }
         if (!version.trim()) {
             setError('Please enter a valid version.');
             return;
@@ -153,14 +153,6 @@ const UploadPage = () => {
             {/* ====== Left Panel: Upload Form ====== */}
             {/* ====== Right Panel: Document List ====== */}
             <main className={styles.rightPanel}>
-                <div className={styles.rightHeader}>
-                    <h1 className={styles.rightTitle}>Uploaded Documents</h1>
-                    <span className={styles.count}>
-                        {documents.length}{' '}
-                        {documents.length === 1 ? 'document' : 'documents'}
-                    </span>
-                </div>
-
                 <div className={styles.formShell}>
                     <div className={styles.tabs}>
                         <button
@@ -190,11 +182,6 @@ const UploadPage = () => {
                                         ? 'The system will create the document and its first version after upload.'
                                         : 'Select the correct target document and the system will calculate the next version number.'}
                                 </p>
-                            </div>
-                            <div className={styles.formBadge}>
-                                {mode === 'new'
-                                    ? 'Insert + version 1'
-                                    : 'Append next version'}
                             </div>
                         </div>
 
@@ -235,20 +222,15 @@ const UploadPage = () => {
                                     </div>
 
                                     <div className={styles.inputGrid}>
+                                        {/* //TODO: Get the department ID from user role*/}
                                         <label className={styles.label}>
                                             Department ID
                                             <input
                                                 className={styles.input}
                                                 type="number"
                                                 min="1"
-                                                placeholder="Example: 1"
                                                 value={departmentId}
-                                                onChange={(e) => {
-                                                    setDepartmentId(
-                                                        e.target.value
-                                                    );
-                                                    resetMessages();
-                                                }}
+                                                disabled
                                             />
                                         </label>
 {/* 
