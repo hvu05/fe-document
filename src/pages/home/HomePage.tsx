@@ -22,8 +22,7 @@ const HomePage = () => {
                         DocuFlow is the ultimate Document Management System. Securely upload, organize, and collaborate on your files from anywhere, at any time.
                     </p>
                     <div className="hero-actions">
-                        <Link to="/register" className="btn-primary-large">Start for Free</Link>
-                        <Link to="/upload" className="btn-secondary-large">Quick Upload</Link>
+                        <Link to="/register" className="btn-primary-large">Start for Free</Link>        
                     </div>
                 </div>
 
