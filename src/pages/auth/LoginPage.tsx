@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
 import API_CONFIG from '../../config/api';
 import type { LoginPayload } from '../../services/authService';
@@ -107,6 +107,10 @@ const LoginPage: React.FC = () => {
                     >
                         {loading ? 'Signing in...' : 'Log in'}
                     </button>
+
+                    <span>
+                        Don't have an account?   <Link to="/register" className="forgot-password">Sign in here</Link>
+                    </span>
                 </form>
             </div>
         </div>

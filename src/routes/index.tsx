@@ -3,6 +3,7 @@ import Layout from '../components/Layout/Layout';
 import LoginPage from '../pages/auth/LoginPage';
 import RegisterPage from '../pages/auth/RegisterPage';
 import UploadPage from '../pages/upload/UploadPage';
+import UpdatePage from '../pages/update/UpdatePage';
 import MyDocuments from '../pages/documents/MyDocuments';
 import HomePage from '../pages/home/HomePage';
 import SearchPage from '../pages/search/SearchPage';
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
             {
                 path: '/upload',
                 element: <UploadPage />,
+            },
+            {
+                path: '/update',
+                element: <UpdatePage />,
             },
             {
                 path: '/search',
