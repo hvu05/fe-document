@@ -72,9 +72,11 @@ const RegisterPage = () => {
             if (response.data && response.data.code === 200) {
                 setSuccess('Registration successful! Redirecting...');
                 // setTimeout(() => navigate('/login'), 2000);
+                navigate('/login')
             } else {
                     setError(response.data?.message || 'Registration failed.');
-            }
+                    console.log('error in register', response)
+                }
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as {

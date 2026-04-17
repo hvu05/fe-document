@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
 import API_CONFIG from '../../config/api';
-import type { LoginPayload } from '../../services/authService';
+// import type { LoginPayload } from '../../services/authService';
 import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
@@ -24,20 +24,37 @@ const LoginPage: React.FC = () => {
         try {
             setLoading(true);
             const response = await authService.login({
-                identifier: identifier.trim(),
+                username: identifier.trim(),
                 password,
             });
+            console.log('response', response)
+            const token = response.data.data.accessToken;
+            let decodedToken: any = null;
+            try {
+                // Decode payload (phần thứ 2 của JWT)
+                decodedToken = JSON.parse(atob(token.split('.')[1]));
+            } catch (e) {
+                console.error("Failed to decode accessToken", e);
+            }
+
+            // Lấy thêm thông tin user từ response hoặc token (dùng 'sub' làm id nếu có)
+            const userToStore = {
+                ...(response.data.data.user || {}),
+                id: decodedToken?.sub || response.data.data.user?._id || '',
+            };
 
             localStorage.setItem(
                 API_CONFIG.storageKeys.accessToken,
-                response.data.access_token
+                token
             );
+            
+            // Lưu thông tin kèm theo token payload
             localStorage.setItem(
                 API_CONFIG.storageKeys.user,
-                JSON.stringify(response.data.user)
+                JSON.stringify(userToStore)
             );
 
-            navigate('/');
+            navigate('/upload');
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as {

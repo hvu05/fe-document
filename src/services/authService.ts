@@ -33,13 +33,15 @@ export interface LoginPayload {
 }
 
 export interface LoginResponse {
-    access_token: string;
-    user: {
-        _id: string;
-        username: string;
-        email: string;
-        role: string;
-    };
+    data: {
+        accessToken: string;
+        user: {
+            _id: string;
+            username: string;
+            email: string;
+            role: string;
+        };
+    }
 }
 
 export interface UserProfile {

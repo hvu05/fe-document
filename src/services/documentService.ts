@@ -4,8 +4,9 @@ import type { UploadedDocument } from '../types/document';
 // ===================== Types =====================
 
 export interface UploadResponse {
+    code: number;
     message: string;
-    document: UploadedDocument;
+    data: UploadedDocument;
 }
 
 export interface GetDocumentsResponse {
@@ -16,19 +17,26 @@ export interface GetDocumentsResponse {
 
 const documentService = {
     // Tải file lên server
-    uploadDocument: (file: File, title: string, type: string) => {
+    uploadDocument: (
+        file: File,
+        title: string,
+        type: string,
+        departmentId: number,
+        userId: string
+    ) => {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('title', title);
-        formData.append('type', type);
 
-        // AxiosClient đã được setup gắn cờ header token tự động
-        // Content-Type cho FormData sẽ được Axios tự cấu hình
         return axiosClient.post<UploadResponse>('/documents/upload', formData, {
+            params: {
+                title,
+                type,
+                departmentId,
+                userId,
+            },
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
-            // onUploadProgress: (progressEvent) => { ... } (Có thể làm thêm progress sau)
         });
     },
 
