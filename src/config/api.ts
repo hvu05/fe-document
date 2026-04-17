@@ -28,6 +28,7 @@ export const API_CONFIG = {
     },
     storageKeys: {
         accessToken: 'access_token',
+        refreshToken: 'refresh_token',
         user: 'user',
     },
 } as const;

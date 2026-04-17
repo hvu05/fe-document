@@ -27,28 +27,31 @@ const LoginPage: React.FC = () => {
                 username: identifier.trim(),
                 password,
             });
-            console.log('response', response)
-            const token = response.data.data.accessToken;
+
+            const { accessToken, refreshToken } = response.data.data;
+
+            // Decode JWT payload to extract user info
             let decodedToken: any = null;
             try {
-                // Decode payload (phần thứ 2 của JWT)
-                decodedToken = JSON.parse(atob(token.split('.')[1]));
+                decodedToken = JSON.parse(atob(accessToken.split('.')[1]));
             } catch (e) {
-                console.error("Failed to decode accessToken", e);
+                console.error('Failed to decode accessToken', e);
             }
 
-            // Lấy thêm thông tin user từ response hoặc token (dùng 'sub' làm id nếu có)
             const userToStore = {
-                ...(response.data.data.user || {}),
-                id: decodedToken?.sub || response.data.data.user?._id || '',
+                id: decodedToken?.sub || '',
+                username: decodedToken?.username || decodedToken?.sub || '',
+                role: decodedToken?.role || '',
             };
 
             localStorage.setItem(
                 API_CONFIG.storageKeys.accessToken,
-                token
+                accessToken
             );
-            
-            // Lưu thông tin kèm theo token payload
+            localStorage.setItem(
+                API_CONFIG.storageKeys.refreshToken,
+                refreshToken
+            );
             localStorage.setItem(
                 API_CONFIG.storageKeys.user,
                 JSON.stringify(userToStore)

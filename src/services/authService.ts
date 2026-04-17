@@ -32,17 +32,18 @@ export interface LoginPayload {
     password: string;
 }
 
-export interface LoginResponse {
-    data: {
-        accessToken: string;
-        user: {
-            _id: string;
-            username: string;
-            email: string;
-            role: string;
-        };
-    }
+export interface TokenResponse {
+    accessToken: string;
+    refreshToken: string;
 }
+
+export interface ApiResponse<T> {
+    code: number;
+    message: string;
+    data: T;
+}
+
+export type LoginResponse = ApiResponse<TokenResponse>;
 
 export interface UserProfile {
     _id?: string;
@@ -63,7 +64,7 @@ export interface UserProfile {
 
 const authService = {
     getDepartments: () => {
-        return axiosClient.get<DepartmentsResponse>('/departments');
+        return axiosClient.get<DepartmentsResponse>('/v1/departments');
     },
 
     register: (data: RegisterPayload) => {

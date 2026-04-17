@@ -22,25 +22,14 @@ const RegisterPage = () => {
 
     useEffect(() => {
         const fetchDepartments = async () => {
-            // try {
-            //     const response = await authService.getDepartments();
-            //     if (response.data && response.data.code === 200) {
-            //         setDepartments(response.data.data);
-            //     }
-            // } catch (err) {
-            //     console.error('Failed to fetch departments', err);
-            // }
-            const department =  [
-            {
-                id: 1,
-                name: "department 1"
-            },
-            {
-                id: 2,
-                name: "department 2"
+            try {
+                const response = await authService.getDepartments();
+                if (response.data && response.data.code === 200) {
+                    setDepartments(response.data.data);
+                }
+            } catch (err) {
+                console.error('Failed to fetch departments', err);
             }
-        ]
-        setDepartments(department)
         };
         fetchDepartments();
     }, []);
@@ -56,7 +45,13 @@ const RegisterPage = () => {
         setSuccess('');
 
         // Validate
-        if (!formData.firstName || !formData.username || !formData.password) {
+        if (
+            !formData.firstName ||
+            !formData.lastName ||
+            !formData.username ||
+            !formData.password ||
+            !formData.departmentId
+        ) {
             setError('Please fill in all required fields.');
             return;
         }
@@ -72,11 +67,11 @@ const RegisterPage = () => {
             if (response.data && response.data.code === 200) {
                 setSuccess('Registration successful! Redirecting...');
                 // setTimeout(() => navigate('/login'), 2000);
-                navigate('/login')
+                navigate('/login');
             } else {
-                    setError(response.data?.message || 'Registration failed.');
-                    console.log('error in register', response)
-                }
+                setError(response.data?.message || 'Registration failed.');
+                console.log('error in register', response);
+            }
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as {

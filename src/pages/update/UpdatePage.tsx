@@ -3,9 +3,19 @@ import type { UploadedDocument } from '../../types/document';
 import documentService from '../../services/documentService';
 import styles from './UpdatePage.module.css';
 
+import API_CONFIG from '../../config/api';
+
 const DOCUMENT_TYPES = ['Contract', 'Report', 'Invoice', 'Other'];
 
 const UpdatePage = () => {
+    const userStr = localStorage.getItem(API_CONFIG.storageKeys.user);
+    let user: any = null;
+    if (userStr && userStr !== 'undefined') {
+        try {
+            user = JSON.parse(userStr);
+        } catch (e) {}
+    }
+
     // Document list and its metadata
     const [documents, setDocuments] = useState<UploadedDocument[]>([]);
     const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
@@ -39,24 +49,14 @@ const UpdatePage = () => {
 
         try {
             setLoading(true);
+            const userId = user?.id ?? user?._id ?? '';
             // API Connection
-            // const res = await documentService.uploadDocument(
-            //     selectedFile,
-            //     selectedDoc.title,
-            //     selectedDoc.type
-            // );
-
-            // Khi upload thành công (Giả lập response trả về document mới)
-            // Xử lý mock để UI được mượt
-            const res: any = await new Promise((resolve) =>
-                setTimeout(() => {
-                    resolve({
-                        data: {
-                            message: 'Version uploaded successfully',
-                            document: null,
-                        },
-                    });
-                }, 500)
+            const res = await documentService.uploadDocument(
+                selectedFile,
+                selectedDoc.title,
+                selectedDoc.type,
+                selectedDoc.departmentId,
+                userId
             );
 
             if (selectedDoc) {

@@ -24,7 +24,6 @@ const UploadPage = () => {
     const [departmentId, setDepartmentId] = useState<string>(
         user?.departmentId?.toString() ?? user?.department_id?.toString() ?? '1'
     );
-    const [version, setVersion] = useState<string>('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     // Status
@@ -40,10 +39,6 @@ const UploadPage = () => {
         }
         if (!departmentId.trim() || Number(departmentId) <= 0) {
             setError('Please enter a valid department ID.');
-            return;
-        }
-        if (!version.trim()) {
-            setError('Please enter a valid version.');
             return;
         }
         if (!selectedFile) {
@@ -154,19 +149,6 @@ const UploadPage = () => {
                                         disabled
                                     />
                                 </label>
-                                <label className={styles.label}>
-                                    Version
-                                    <input
-                                        className={styles.input}
-                                        type="text"
-                                        placeholder="Enter version of the document"
-                                        value={version}
-                                        onChange={(e) => {
-                                            setVersion(e.target.value);
-                                            resetMessages();
-                                        }}
-                                    />
-                                </label>
                             </div>
                             <label className={styles.label}>
                                 Select File
@@ -194,9 +176,7 @@ const UploadPage = () => {
                                 className={styles.uploadBtn}
                                 onClick={handleUpload}
                                 disabled={
-                                    loading ||
-                                    !selectedFile ||
-                                    !title.trim()
+                                    loading || !selectedFile || !title.trim()
                                 }
                             >
                                 {loading
