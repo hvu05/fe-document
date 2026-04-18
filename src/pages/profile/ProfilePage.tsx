@@ -16,6 +16,7 @@ const ProfilePage = () => {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [departmentName, setDepartmentName] = useState<string>('Loading...');
 
     useEffect(() => {
         const localUser = localStorage.getItem(API_CONFIG.storageKeys.user);
@@ -27,24 +28,38 @@ const ProfilePage = () => {
             }
         }
 
-        authService
-            .getProfile()
-            .then((response) => {
-                // Determine if it's wrapped in ApiResponse
-                const fetchedProfile = (response.data as any).data || response.data;
+        const fetchData = async () => {
+            try {
+                const profileRes = await authService.getProfile();
+                const fetchedProfile = (profileRes.data as any).data || profileRes.data;
                 setProfile(fetchedProfile);
                 localStorage.setItem(
                     API_CONFIG.storageKeys.user,
                     JSON.stringify(fetchedProfile)
                 );
-            })
-            .catch(() => {
+
+                const dId = fetchedProfile?.departmentId;
+                if (dId !== undefined && dId !== null) {
+                    const deptsRes = await authService.getDepartments();
+                    const depts = (deptsRes.data as any).data || deptsRes.data || [];
+                    const matched = depts.find((d: any) => d.id === Number(dId));
+                    if (matched) {
+                        setDepartmentName(matched.name);
+                    } else {
+                        setDepartmentName(`Unknown (ID: ${dId})`);
+                    }
+                } else {
+                    setDepartmentName('—');
+                }
+            } catch (err) {
                 setError('Failed to load profile data from the backend.');
-            })
-            .finally(() => {
+                setDepartmentName('—');
+            } finally {
                 setLoading(false);
-            });
-        console.log('profile', profile)
+            }
+        };
+
+        fetchData();
     }, []);
 
     const fullName = useMemo(() => {
@@ -60,9 +75,7 @@ const ProfilePage = () => {
                     <div className={styles.eyebrow}>Account</div>
                     <h1 className={styles.title}>Profile</h1>
                     <p className={styles.subtitle}>
-                        This page is already connected to the profile API. You
-                        can now align the backend response shape with the
-                        displayed fields below.
+                        View your personal account information and system roles.
                     </p>
                 </div>
             </div>
@@ -81,9 +94,7 @@ const ProfilePage = () => {
                         <div className={styles.summaryMeta}>
                             {profile?.roles?.[0]?.roleName || 'No role provided'}
                         </div>
-                        <div className={styles.summaryMeta}>
-                            Email not available
-                        </div>
+
                         {error && (
                             <div className={styles.inlineError}>{error}</div>
                         )}
@@ -132,20 +143,13 @@ const ProfilePage = () => {
                             </div>
                             <div className={styles.detailItem}>
                                 <span className={styles.detailLabel}>
-                                    Department ID
+                                    Department
                                 </span>
                                 <span className={styles.detailValue}>
-                                    {profile?.departmentId ?? '—'}
+                                    {departmentName}
                                 </span>
                             </div>
-                            <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>
-                                    Raw User ID
-                                </span>
-                                <span className={styles.detailValue}>
-                                    {profile?.id || '—'}
-                                </span>
-                            </div>
+
                         </div>
                     </section>
                 </div>
