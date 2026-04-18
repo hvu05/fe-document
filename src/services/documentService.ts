@@ -26,33 +26,20 @@ const documentService = {
     ) => {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('title', title);
-        formData.append('type', type);
-        formData.append('departmentId', departmentId.toString());
+
+        const params: Record<string, any> = {
+            title,
+            type,
+            departmentId,
+        };
+        // Optional user ID, depending on if the backend expects it. 
         if (userId) {
-            formData.append('userId', userId);
+            params.userId = userId;
         }
 
-        // Dùng native fetch để vượt qua mọi lỗi của Axios Header/Interceptor
-        const token = localStorage.getItem('access_token');
-        const headers: HeadersInit = {};
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
-        const response = await fetch(`${baseURL}/documents/upload`, {
-            method: 'POST',
-            body: formData,
-            headers: headers
+        return axiosClient.post<UploadResponse>('/documents/upload', formData, {
+            params,
         });
-
-        if (!response.ok) {
-            throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        return data as UploadResponse;
     },
 
     // Lấy danh sách file (vd: cho mock hoặc thực)
@@ -92,11 +79,7 @@ const documentService = {
     uploadNewVersion: async (documentId: number, file: File) => {
         const formData = new FormData();
         formData.append('file', file);
-        return axiosClient.post(`/documents/${documentId}/versions`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+        return axiosClient.post(`/documents/${documentId}/versions`, formData);
     },
 };
 
