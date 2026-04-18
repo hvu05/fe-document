@@ -68,10 +68,10 @@ const Header = () => {
                     <span className={styles.navIcon}>⬆️</span>
                     Upload
                 </Link>
-                <Link to="/update" className={isActive('/update')}>
+                {/* <Link to="/update" className={isActive('/update')}>
                     <span className={styles.navIcon}>📤</span>
                     Update
-                </Link>
+                </Link> */}
             </nav>
 
             <div className={styles.userSection} ref={dropdownRef}>

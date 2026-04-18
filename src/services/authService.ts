@@ -45,18 +45,20 @@ export interface ApiResponse<T> {
 
 export type LoginResponse = ApiResponse<TokenResponse>;
 
+export interface Role {
+    id: string;
+    roleName: string;
+    description: string;
+}
+
 export interface UserProfile {
-    _id?: string;
     id?: string;
     username?: string;
-    email?: string;
-    role?: string;
-    first_name?: string;
-    last_name?: string;
-    phone?: string;
-    department_id?: number;
+    firstName?: string;
+    lastName?: string;
     departmentId?: number;
-    created_at?: string;
+    roles?: Role[];
+    email?: string;
     createdAt?: string;
 }
 
@@ -79,7 +81,7 @@ const authService = {
     },
 
     getProfile: () => {
-        return axiosClient.get<UserProfile>(API_CONFIG.auth.profile);
+        return axiosClient.get<ApiResponse<UserProfile>>(API_CONFIG.auth.profile);
     },
 };
 
