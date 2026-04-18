@@ -64,6 +64,10 @@ const Header = () => {
                     <span className={styles.navIcon}>📁</span>
                     My Documents
                 </Link>
+                <Link to="/department-documents" className={isActive('/department-documents')}>
+                    <span className={styles.navIcon}>🏢</span>
+                    Dept Docs
+                </Link>
                 <Link to="/upload" className={isActive('/upload')}>
                     <span className={styles.navIcon}>⬆️</span>
                     Upload

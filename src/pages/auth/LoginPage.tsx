@@ -57,6 +57,11 @@ const LoginPage: React.FC = () => {
                 JSON.stringify(userToStore)
             );
 
+            const userProfile = await authService.getProfile()
+            localStorage.setItem(
+                'user-profile',
+                JSON.stringify(userProfile.data.data)
+            )
             navigate('/upload');
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
