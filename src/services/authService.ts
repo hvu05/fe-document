@@ -52,14 +52,16 @@ export interface Role {
 }
 
 export interface UserProfile {
-    id?: string;
-    username?: string;
-    firstName?: string;
-    lastName?: string;
-    departmentId?: number;
-    roles?: Role[];
-    email?: string;
-    createdAt?: string;
+    id: string;
+    firstName: string;
+    lastName: string;
+    username: string;
+    departmentId: number;
+    roles: Array<{
+        id: string;
+        roleName: string;
+        description: string;
+    }>;
 }
 
 // ===================== API Calls =====================

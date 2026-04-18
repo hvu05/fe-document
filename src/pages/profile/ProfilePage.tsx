@@ -30,11 +30,12 @@ const ProfilePage = () => {
         authService
             .getProfile()
             .then((response) => {
-                console.log('reponse in profile page', response)
-                setProfile(response.data.data);
+                // Determine if it's wrapped in ApiResponse
+                const fetchedProfile = (response.data as any).data || response.data;
+                setProfile(fetchedProfile);
                 localStorage.setItem(
                     API_CONFIG.storageKeys.user,
-                    JSON.stringify(response.data.data)
+                    JSON.stringify(fetchedProfile)
                 );
             })
             .catch(() => {
@@ -78,10 +79,10 @@ const ProfilePage = () => {
                         </div>
                         <div className={styles.summaryName}>{fullName}</div>
                         <div className={styles.summaryMeta}>
-                            {profile?.roles?.map(r => r.roleName).join(', ') || 'No role provided'}
+                            {profile?.roles?.[0]?.roleName || 'No role provided'}
                         </div>
                         <div className={styles.summaryMeta}>
-                            {profile?.email || 'No email provided'}
+                            Email not available
                         </div>
                         {error && (
                             <div className={styles.inlineError}>{error}</div>
@@ -93,9 +94,9 @@ const ProfilePage = () => {
                             <h2 className={styles.detailsTitle}>
                                 Profile Details
                             </h2>
-                            {/* <span className={styles.apiBadge}>
-                                GET /auth/profile
-                            </span> */}
+                            <span className={styles.apiBadge}>
+                                GET /v1/users/me
+                            </span>
                         </div>
 
                         <div className={styles.detailsGrid}>
@@ -105,14 +106,6 @@ const ProfilePage = () => {
                                 </span>
                                 <span className={styles.detailValue}>
                                     {profile?.username || '—'}
-                                </span>
-                            </div>
-                            <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>
-                                    Email
-                                </span>
-                                <span className={styles.detailValue}>
-                                    {profile?.email || '—'}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
@@ -132,7 +125,7 @@ const ProfilePage = () => {
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>Role</span>
+                                <span className={styles.detailLabel}>Roles</span>
                                 <span className={styles.detailValue}>
                                     {profile?.roles?.map(r => r.roleName).join(', ') || '—'}
                                 </span>
@@ -143,14 +136,6 @@ const ProfilePage = () => {
                                 </span>
                                 <span className={styles.detailValue}>
                                     {profile?.departmentId ?? '—'}
-                                </span>
-                            </div>
-                            <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>
-                                    Created At
-                                </span>
-                                <span className={styles.detailValue}>
-                                    {formatDate(profile?.createdAt)}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
