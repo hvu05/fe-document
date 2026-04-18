@@ -44,6 +44,7 @@ const ProfilePage = () => {
             .finally(() => {
                 setLoading(false);
             });
+        console.log('profile', profile)
     }, []);
 
     const fullName = useMemo(() => {

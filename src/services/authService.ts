@@ -45,6 +45,12 @@ export interface ApiResponse<T> {
 
 export type LoginResponse = ApiResponse<TokenResponse>;
 
+export interface Role {
+    id: string;
+    roleName: string;
+    description: string;
+}
+
 export interface UserProfile {
     id: string;
     firstName: string;
