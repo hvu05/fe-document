@@ -64,7 +64,7 @@ const documentService = {
     },
 
     // Xoá document theo id
-    deleteDocument: (id: string) => {
+    deleteDocument: (id: number) => {
         return axiosClient.delete(`/documents/${id}`);
     },
 
