@@ -7,7 +7,12 @@ import authService from '../../services/authService';
 import API_CONFIG from '../../config/api';
 import styles from './UploadPage.module.css';
 
-const DOCUMENT_TYPES = ['Contract', 'Report', 'Invoice', 'Other'];
+const DOCUMENT_TYPES = [
+    { label: 'Contract', value: 'CONTRACT' },
+    { label: 'Report', value: 'REPORT' },
+    { label: 'Invoice', value: 'INVOICE' },
+    { label: 'Others', value: 'OTHERS' }
+];
 
 const UploadPage = () => {
     const userStr = localStorage.getItem(API_CONFIG.storageKeys.user);
@@ -21,7 +26,7 @@ const UploadPage = () => {
     // Document list and its metadata
     const [documents, setDocuments] = useState<UploadedDocument[]>([]);
     const [title, setTitle] = useState<string>('');
-    const [type, setType] = useState(DOCUMENT_TYPES[0]);
+    const [type, setType] = useState(DOCUMENT_TYPES[0].value);
     const [departmentId, setDepartmentId] = useState<string>(
         user?.departmentId?.toString() ?? user?.department_id?.toString() ?? '1'
     );
@@ -97,7 +102,7 @@ const UploadPage = () => {
             }
 
             setTitle('');
-            setType(DOCUMENT_TYPES[0]);
+            setType(DOCUMENT_TYPES[0].value);
             setSelectedFile(null);
             if (fileInputRef.current) fileInputRef.current.value = '';
         } catch (err: unknown) {
@@ -158,8 +163,8 @@ const UploadPage = () => {
                                         }
                                     >
                                         {DOCUMENT_TYPES.map((t) => (
-                                            <option key={t} value={t}>
-                                                {t}
+                                            <option key={t.value} value={t.value}>
+                                                {t.label}
                                             </option>
                                         ))}
                                     </select>
