@@ -30,10 +30,11 @@ const ProfilePage = () => {
         authService
             .getProfile()
             .then((response) => {
-                setProfile(response.data);
+                console.log('reponse in profile page', response)
+                setProfile(response.data.data);
                 localStorage.setItem(
                     API_CONFIG.storageKeys.user,
-                    JSON.stringify(response.data)
+                    JSON.stringify(response.data.data)
                 );
             })
             .catch(() => {
@@ -42,11 +43,12 @@ const ProfilePage = () => {
             .finally(() => {
                 setLoading(false);
             });
+        console.log('profile', profile)
     }, []);
 
     const fullName = useMemo(() => {
         if (!profile) return 'User';
-        const parts = [profile.first_name, profile.last_name].filter(Boolean);
+        const parts = [profile.firstName, profile.lastName].filter(Boolean);
         return parts.length > 0 ? parts.join(' ') : profile.username || 'User';
     }, [profile]);
 
@@ -76,7 +78,7 @@ const ProfilePage = () => {
                         </div>
                         <div className={styles.summaryName}>{fullName}</div>
                         <div className={styles.summaryMeta}>
-                            {profile?.role || 'No role provided'}
+                            {profile?.roles?.map(r => r.roleName).join(', ') || 'No role provided'}
                         </div>
                         <div className={styles.summaryMeta}>
                             {profile?.email || 'No email provided'}
@@ -91,9 +93,9 @@ const ProfilePage = () => {
                             <h2 className={styles.detailsTitle}>
                                 Profile Details
                             </h2>
-                            <span className={styles.apiBadge}>
+                            {/* <span className={styles.apiBadge}>
                                 GET /auth/profile
-                            </span>
+                            </span> */}
                         </div>
 
                         <div className={styles.detailsGrid}>
@@ -118,7 +120,7 @@ const ProfilePage = () => {
                                     First Name
                                 </span>
                                 <span className={styles.detailValue}>
-                                    {profile?.first_name || '—'}
+                                    {profile?.firstName || '—'}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
@@ -126,13 +128,13 @@ const ProfilePage = () => {
                                     Last Name
                                 </span>
                                 <span className={styles.detailValue}>
-                                    {profile?.last_name || '—'}
+                                    {profile?.lastName || '—'}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
                                 <span className={styles.detailLabel}>Role</span>
                                 <span className={styles.detailValue}>
-                                    {profile?.role || '—'}
+                                    {profile?.roles?.map(r => r.roleName).join(', ') || '—'}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
@@ -140,9 +142,7 @@ const ProfilePage = () => {
                                     Department ID
                                 </span>
                                 <span className={styles.detailValue}>
-                                    {profile?.departmentId ??
-                                        profile?.department_id ??
-                                        '—'}
+                                    {profile?.departmentId ?? '—'}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
@@ -150,10 +150,7 @@ const ProfilePage = () => {
                                     Created At
                                 </span>
                                 <span className={styles.detailValue}>
-                                    {formatDate(
-                                        profile?.createdAt ||
-                                            profile?.created_at
-                                    )}
+                                    {formatDate(profile?.createdAt)}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
@@ -161,7 +158,7 @@ const ProfilePage = () => {
                                     Raw User ID
                                 </span>
                                 <span className={styles.detailValue}>
-                                    {profile?.id || profile?._id || '—'}
+                                    {profile?.id || '—'}
                                 </span>
                             </div>
                         </div>
