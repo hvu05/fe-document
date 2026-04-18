@@ -9,7 +9,7 @@ const Header = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const userStr = localStorage.getItem(API_CONFIG.storageKeys.user);
+    const userStr = localStorage.getItem('user-profile');
     let user = null;
     if (userStr && userStr !== 'undefined') {
         try {
@@ -63,6 +63,10 @@ const Header = () => {
                 <Link to="/my-documents" className={isActive('/my-documents')}>
                     <span className={styles.navIcon}>📁</span>
                     My Documents
+                </Link>
+                <Link to="/department-documents" className={isActive('/department-documents')}>
+                    <span className={styles.navIcon}>🏢</span>
+                    Dept Docs
                 </Link>
                 <Link to="/upload" className={isActive('/upload')}>
                     <span className={styles.navIcon}>⬆️</span>

@@ -8,6 +8,7 @@ import MyDocuments from '../pages/documents/MyDocuments';
 import HomePage from '../pages/home/HomePage';
 import SearchPage from '../pages/search/SearchPage';
 import ProfilePage from '../pages/profile/ProfilePage';
+import DepartmentDocuments from '../pages/documents/DepartmentDocuments';
 
 const router = createBrowserRouter([
     {
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
             {
                 path: '/upload',
                 element: <UploadPage />,
+            },
+            {
+                path: '/department-documents',
+                element: <DepartmentDocuments />,
             },
             {
                 path: '/update',
