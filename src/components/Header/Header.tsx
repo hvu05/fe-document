@@ -9,7 +9,7 @@ const Header = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const userStr = localStorage.getItem(API_CONFIG.storageKeys.user);
+    const userStr = localStorage.getItem('user-profile');
     let user = null;
     if (userStr && userStr !== 'undefined') {
         try {
