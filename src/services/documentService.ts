@@ -47,6 +47,11 @@ const documentService = {
         return axiosClient.get<GetDocumentsResponse>('/documents');
     },
 
+    // Lấy danh sách file theo phòng ban
+    getDepartmentDocuments: (departmentId: number) => {
+        return axiosClient.get(`/documents/department/${departmentId}`);
+    },
+
     // Lấy danh sách file của user
     getMyDocuments: () => {
         return axiosClient.get('/documents/me');
