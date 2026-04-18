@@ -84,7 +84,12 @@ const documentService = {
     uploadNewVersion: async (documentId: number, file: File) => {
         const formData = new FormData();
         formData.append('file', file);
-        return axiosClient.post(`/documents/${documentId}/versions`, formData);
+        return axiosClient.put(`/documents/${documentId}`, formData);
+    },
+
+    // Lấy danh sách các phiên bản của một tài liệu
+    getDocumentVersions: (documentId: number) => {
+        return axiosClient.get(`/documents/${documentId}/versions`);
     },
 };
 

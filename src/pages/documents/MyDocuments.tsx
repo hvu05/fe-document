@@ -40,6 +40,11 @@ const MyDocuments = () => {
     const [versionFile, setVersionFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // History modal
+    const [historyModalDoc, setHistoryModalDoc] = useState<Document | null>(null);
+    const [historyData, setHistoryData] = useState<any[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+
     const fetchDocuments = async () => {
         try {
             setLoading(true);
@@ -99,6 +104,33 @@ const MyDocuments = () => {
             fetchDocuments();
         } catch {
             alert('Failed to upload new version');
+        }
+    };
+
+    const handleViewHistory = async (doc: any) => {
+        setHistoryModalDoc(doc);
+        setHistoryLoading(true);
+        try {
+            const res = await documentService.getDocumentVersions(doc.id);
+            setHistoryData(res.data.data || res.data || []);
+        } catch (error) {
+            alert('Failed to load version history.');
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    const handleDownloadHistoricalVersion = async (documentId: number, versionId: number, fileName: string) => {
+        try {
+            const res = await documentService.downloadVersion(documentId, versionId);
+            const url = window.URL.createObjectURL(new Blob([res.data]));
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName || 'download';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch {
+            alert('Download failed');
         }
     };
 
@@ -209,6 +241,15 @@ const MyDocuments = () => {
                                                     📤 New Version
                                                 </button>
                                                 <button
+                                                    className={styles.btnView}
+                                                    onClick={() =>
+                                                        handleViewHistory(doc)
+                                                    }
+                                                    title="Version History"
+                                                >
+                                                    🕒 History
+                                                </button>
+                                                <button
                                                     className={styles.btnDelete}
                                                     onClick={() =>
                                                         handleDelete(doc.id)
@@ -277,6 +318,95 @@ const MyDocuments = () => {
                                 disabled={!versionFile}
                             >
                                 Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* History modal */}
+            {historyModalDoc && (
+                <div
+                    className={styles.modalOverlay}
+                    onClick={() => setHistoryModalDoc(null)}
+                >
+                    <div
+                        className={styles.modal}
+                        style={{ maxWidth: '600px' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <h3 className={styles.modalTitle} style={{ marginBottom: 0 }}>
+                                Version History - {historyModalDoc.title}
+                            </h3>
+                            <button 
+                                onClick={() => setHistoryModalDoc(null)}
+                                style={{ background: 'none', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        
+                        {historyLoading ? (
+                            <div className={styles.loading}>Loading history...</div>
+                        ) : historyData.length === 0 ? (
+                            <div className={styles.emptyText}>No version history found.</div>
+                        ) : (
+                            <div className={styles.tableWrapper} style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                <table className={styles.table}>
+                                    <thead>
+                                        <tr>
+                                            <th>Version</th>
+                                            <th>File Name</th>
+                                            <th>Size</th>
+                                            <th>Upload Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {historyData.map((v, index) => (
+                                            <tr key={v.id || index}>
+                                                <td>
+                                                    <span className={styles.versionBadge}>
+                                                        v{v.versionNumber || v.version || index + 1}
+                                                    </span>
+                                                </td>
+                                                <td style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    {v.fileName || historyModalDoc.title}
+                                                </td>
+                                                <td className={styles.fileSize}>
+                                                    {formatFileSize(v.fileSize || 0)}
+                                                </td>
+                                                <td>
+                                                    {v.createdAt ? formatDate(v.createdAt) : '—'}
+                                                </td>
+                                                <td>
+                                                    <div className={styles.actions} style={{ justifyContent: 'flex-start', gap: '4px' }}>
+                                                        <button className={styles.btnView} title="View" style={{ padding: '4px 6px' }}>
+                                                            👁
+                                                        </button>
+                                                        <button 
+                                                            className={styles.btnDownload} 
+                                                            onClick={() => handleDownloadHistoricalVersion(historyModalDoc.id, v.id, v.fileName || historyModalDoc.title)}
+                                                            title="Download" 
+                                                            style={{ padding: '4px 6px' }}
+                                                        >
+                                                            ⬇
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                        <div className={styles.modalActions} style={{ marginTop: '20px' }}>
+                            <button
+                                className={styles.modalBtnCancel}
+                                onClick={() => setHistoryModalDoc(null)}
+                            >
+                                Close
                             </button>
                         </div>
                     </div>
