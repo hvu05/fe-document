@@ -60,9 +60,43 @@ const documentService = {
         return axiosClient.get<GetDocumentsResponse>('/documents');
     },
 
+    // Lấy danh sách file của user
+    getMyDocuments: () => {
+        return axiosClient.get('/documents/me');
+    },
+
+    // Tìm kiếm file
+    searchDocuments: (params: {
+        title?: string;
+        type?: string;
+        departmentId?: number;
+        startDate?: string;
+        endDate?: string;
+    }) => {
+        return axiosClient.get('/documents/search', { params });
+    },
+
     // Xoá document theo id
     deleteDocument: (id: string) => {
         return axiosClient.delete(`/documents/${id}`);
+    },
+
+    // Tải xuống file theo version
+    downloadVersion: (documentId: number, versionId: number) => {
+        return axiosClient.get(`/documents/${documentId}/versions/${versionId}/download`, {
+            responseType: 'blob'
+        });
+    },
+
+    // Tải phiên bản mới
+    uploadNewVersion: async (documentId: number, file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return axiosClient.post(`/documents/${documentId}/versions`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
     },
 };
 

@@ -44,7 +44,7 @@ const MyDocuments = () => {
         try {
             setLoading(true);
             const res = await documentService.getMyDocuments();
-            setDocuments(res.data);
+            setDocuments(res.data.data || []);
         } catch {
             console.error('Failed to fetch documents');
         } finally {
@@ -67,18 +67,18 @@ const MyDocuments = () => {
         }
     };
 
-    const handleDownload = async (doc: Document) => {
-        const latest = doc.latestVersion ?? doc.versions?.[0];
-        if (!latest) return;
+    const handleDownload = async (doc: any) => {
+        const latestId = (doc as any).currentVersion ?? doc.latestVersion?.id ?? doc.versions?.[0]?.id;
+        if (!latestId) return;
         try {
             const res = await documentService.downloadVersion(
                 doc.id,
-                latest.id
+                latestId
             );
             const url = window.URL.createObjectURL(new Blob([res.data]));
             const a = document.createElement('a');
             a.href = url;
-            a.download = latest.fileName || `${doc.title}`;
+            a.download = doc.fileName || doc.latestVersion?.fileName || doc.versions?.[0]?.fileName || `${doc.title}`;
             a.click();
             window.URL.revokeObjectURL(url);
         } catch {
@@ -102,9 +102,10 @@ const MyDocuments = () => {
         }
     };
 
-    const getNextVersion = (doc: Document): number => {
+    const getNextVersion = (doc: any): number => {
+        if (doc.currentVersion) return doc.currentVersion + 1;
         if (!doc.versions || doc.versions.length === 0) return 1;
-        return Math.max(...doc.versions.map((v) => v.versionNumber)) + 1;
+        return Math.max(...doc.versions.map((v: any) => v.versionNumber)) + 1;
     };
 
     return (
@@ -166,15 +167,11 @@ const MyDocuments = () => {
                                             <span
                                                 className={styles.versionBadge}
                                             >
-                                                v{latest?.versionNumber ?? 1}
+                                                v{(doc as any).currentVersion ?? latest?.versionNumber ?? 1}
                                             </span>
                                         </td>
                                         <td className={styles.fileSize}>
-                                            {latest
-                                                ? formatFileSize(
-                                                      latest.fileSize
-                                                  )
-                                                : '—'}
+                                            {formatFileSize((doc as any).fileSize ?? latest?.fileSize ?? 0)}
                                         </td>
                                         <td>
                                             {doc.createdAt
