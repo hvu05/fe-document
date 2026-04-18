@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
 import API_CONFIG from '../../config/api';
-import type { LoginPayload } from '../../services/authService';
+// import type { LoginPayload } from '../../services/authService';
 import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
@@ -24,20 +24,40 @@ const LoginPage: React.FC = () => {
         try {
             setLoading(true);
             const response = await authService.login({
-                identifier: identifier.trim(),
+                username: identifier.trim(),
                 password,
             });
 
+            const { accessToken, refreshToken } = response.data.data;
+
+            // Decode JWT payload to extract user info
+            let decodedToken: any = null;
+            try {
+                decodedToken = JSON.parse(atob(accessToken.split('.')[1]));
+            } catch (e) {
+                console.error('Failed to decode accessToken', e);
+            }
+
+            const userToStore = {
+                id: decodedToken?.sub || '',
+                username: decodedToken?.username || decodedToken?.sub || '',
+                role: decodedToken?.role || '',
+            };
+
             localStorage.setItem(
                 API_CONFIG.storageKeys.accessToken,
-                response.data.access_token
+                accessToken
+            );
+            localStorage.setItem(
+                API_CONFIG.storageKeys.refreshToken,
+                refreshToken
             );
             localStorage.setItem(
                 API_CONFIG.storageKeys.user,
-                JSON.stringify(response.data.user)
+                JSON.stringify(userToStore)
             );
 
-            navigate('/');
+            navigate('/upload');
         } catch (err: unknown) {
             if (err && typeof err === 'object' && 'response' in err) {
                 const axiosErr = err as {

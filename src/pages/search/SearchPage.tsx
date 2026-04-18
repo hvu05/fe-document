@@ -33,8 +33,8 @@ const SearchPage = () => {
         if (!query.trim()) return;
         try {
             setLoading(true);
-            const res = await documentService.searchDocuments(query.trim());
-            setResults(res.data);
+            const res = await documentService.searchDocuments({ title: query.trim() });
+            setResults(res.data.data || []);
             setSearched(true);
         } catch {
             alert('Search failed');
@@ -47,13 +47,13 @@ const SearchPage = () => {
         if (e.key === 'Enter') handleSearch();
     };
 
-    const handleDownload = async (doc: Document) => {
-        const latest = doc.latestVersion ?? doc.versions?.[0];
-        if (!latest) return;
+    const handleDownload = async (doc: any) => {
+        const latestId = (doc as any).currentVersion ?? doc.latestVersion?.id ?? doc.versions?.[0]?.id;
+        if (!latestId) return;
         try {
             const res = await documentService.downloadVersion(
                 doc.id,
-                latest.id
+                latestId
             );
             const url = window.URL.createObjectURL(new Blob([res.data]));
             const a = document.createElement('a');
@@ -144,7 +144,8 @@ const SearchPage = () => {
                                                         }
                                                     >
                                                         v
-                                                        {latest?.versionNumber ??
+                                                        {(doc as any).currentVersion ??
+                                                            latest?.versionNumber ??
                                                             1}
                                                     </span>
                                                 </td>

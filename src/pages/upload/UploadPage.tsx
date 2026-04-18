@@ -3,17 +3,27 @@
 import { useRef, useState } from 'react';
 import type { UploadedDocument } from '../../types/document';
 import documentService from '../../services/documentService';
+import API_CONFIG from '../../config/api';
 import styles from './UploadPage.module.css';
 
 const DOCUMENT_TYPES = ['Contract', 'Report', 'Invoice', 'Other'];
 
 const UploadPage = () => {
+    const userStr = localStorage.getItem(API_CONFIG.storageKeys.user);
+    let user: any = null;
+    if (userStr && userStr !== 'undefined') {
+        try {
+            user = JSON.parse(userStr);
+        } catch (e) {}
+    }
+
     // Document list and its metadata
     const [documents, setDocuments] = useState<UploadedDocument[]>([]);
     const [title, setTitle] = useState<string>('');
     const [type, setType] = useState(DOCUMENT_TYPES[0]);
-    const [departmentId, setDepartmentId] = useState<string>('');
-    const [version, setVersion] = useState<string>('');
+    const [departmentId, setDepartmentId] = useState<string>(
+        user?.departmentId?.toString() ?? user?.department_id?.toString() ?? '1'
+    );
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     // Status
@@ -27,12 +37,8 @@ const UploadPage = () => {
             setError('Please enter a document title.');
             return;
         }
-        // if (!departmentId.trim() || Number(departmentId) <= 0) {
-        //     setError('Please enter a valid department ID.');
-        //     return;
-        // }
-        if (!version.trim()) {
-            setError('Please enter a valid version.');
+        if (!departmentId.trim() || Number(departmentId) <= 0) {
+            setError('Please enter a valid department ID.');
             return;
         }
         if (!selectedFile) {
@@ -45,53 +51,22 @@ const UploadPage = () => {
 
         try {
             setLoading(true);
+            const userId = user?.id ?? user?._id ?? '';
             // API Connection
-            // const res = await documentService.uploadDocument(
-            //     selectedFile,
-            //     title.trim(),
-            //     type
-            // );
-
-            // Khi upload thành công (Giả lập response trả về document mới)
-            // Trong thực tế sẽ setDocuments([res.data.document, ...documents])
-            // Xử lý mock để UI được mượt
-            const res: any = await new Promise((resolve) =>
-                setTimeout(() => {
-                    resolve({
-                        data: {
-                            message: 'Upload successful',
-                            document: null,
-                        },
-                    });
-                }, 500)
+            const res = await documentService.uploadDocument(
+                selectedFile,
+                title.trim(),
+                type,
+                Number(departmentId),
+                userId
             );
 
-            let newDoc = res.data?.document;
-            // File format
-            if (!newDoc) {
-                newDoc = {
-                    id: `doc-${Date.now()}`,
-                    title: title.trim(),
-                    type: type,
-                    fileName: selectedFile.name,
-                    fileSize: selectedFile.size,
-                    createdAt: new Date(),
-                    fileUrl: URL.createObjectURL(selectedFile),
-                    departmentId: departmentId,
-                    createdBy: 'Temp user',
-                    versionHistory: [
-                        {
-                            version: version,
-                            fileName: selectedFile.name,
-                            fileSize: selectedFile.size,
-                            createdAt: new Date(),
-                            fileUrl: URL.createObjectURL(selectedFile),
-                        },
-                    ],
-                };
+            let newDoc = res.data?.data;
+            if (newDoc) {
+                setDocuments((prev) => [newDoc, ...prev]);
+                setSuccess('Document uploaded successfully!');
             }
 
-            setDocuments((prev) => [newDoc, ...prev]);
             setTitle('');
             setType(DOCUMENT_TYPES[0]);
             setSelectedFile(null);
@@ -174,19 +149,6 @@ const UploadPage = () => {
                                         disabled
                                     />
                                 </label>
-                                <label className={styles.label}>
-                                    Version
-                                    <input
-                                        className={styles.input}
-                                        type="text"
-                                        placeholder="Enter version of the document"
-                                        value={version}
-                                        onChange={(e) => {
-                                            setVersion(e.target.value);
-                                            resetMessages();
-                                        }}
-                                    />
-                                </label>
                             </div>
                             <label className={styles.label}>
                                 Select File
@@ -214,9 +176,7 @@ const UploadPage = () => {
                                 className={styles.uploadBtn}
                                 onClick={handleUpload}
                                 disabled={
-                                    loading ||
-                                    !selectedFile ||
-                                    !title.trim()
+                                    loading || !selectedFile || !title.trim()
                                 }
                             >
                                 {loading

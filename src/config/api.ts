@@ -2,8 +2,8 @@ export const API_CONFIG = {
     // Set your backend base URL in VITE_API_BASE_URL, for example:
     // VITE_API_BASE_URL=http://localhost:3000/api
     auth: {
-        register: '/auth/register',
-        login: '/auth/login',
+        register: '/v1/auth/register',
+        login: '/v1/auth/login',
         profile: '/auth/profile',
     },
     documents: {
@@ -28,6 +28,7 @@ export const API_CONFIG = {
     },
     storageKeys: {
         accessToken: 'access_token',
+        refreshToken: 'refresh_token',
         user: 'user',
     },
 } as const;

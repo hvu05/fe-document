@@ -24,21 +24,15 @@ export interface Document {
 
 // Keep for backward compat with mock data
 export interface UploadedDocument {
-    id: string;
+    id: number;
     title: string;
     type: string;
     departmentId: number;
+    departmentName: string;
     createdBy: string;
-    // The top-level file info can represent the latest version
+    createdByName: string;
     fileName: string;
     fileSize: number;
-    createdAt: Date;
-    fileUrl: string;
-    versionHistory: {
-        version: string;
-        fileName: string;
-        fileSize: number;
-        createdAt: Date;
-        fileUrl: string;
-    }[];
+    fileType: string;
+    createdAt: string;
 }

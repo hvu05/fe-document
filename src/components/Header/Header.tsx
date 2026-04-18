@@ -10,7 +10,14 @@ const Header = () => {
     const navigate = useNavigate();
 
     const userStr = localStorage.getItem(API_CONFIG.storageKeys.user);
-    const user = userStr ? JSON.parse(userStr) : null;
+    let user = null;
+    if (userStr && userStr !== 'undefined') {
+        try {
+            user = JSON.parse(userStr);
+        } catch (e) {
+            console.error("Failed to parse user from localStorage", e);
+        }
+    }
     const username = user?.username ?? 'User';
     const email = user?.email ?? '';
     const initials = username.slice(0, 2).toUpperCase();
