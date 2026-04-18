@@ -30,10 +30,12 @@ const ProfilePage = () => {
         authService
             .getProfile()
             .then((response) => {
-                setProfile(response.data);
+                // Determine if it's wrapped in ApiResponse
+                const fetchedProfile = (response.data as any).data || response.data;
+                setProfile(fetchedProfile);
                 localStorage.setItem(
                     API_CONFIG.storageKeys.user,
-                    JSON.stringify(response.data)
+                    JSON.stringify(fetchedProfile)
                 );
             })
             .catch(() => {
@@ -46,7 +48,7 @@ const ProfilePage = () => {
 
     const fullName = useMemo(() => {
         if (!profile) return 'User';
-        const parts = [profile.first_name, profile.last_name].filter(Boolean);
+        const parts = [profile.firstName, profile.lastName].filter(Boolean);
         return parts.length > 0 ? parts.join(' ') : profile.username || 'User';
     }, [profile]);
 
@@ -76,10 +78,10 @@ const ProfilePage = () => {
                         </div>
                         <div className={styles.summaryName}>{fullName}</div>
                         <div className={styles.summaryMeta}>
-                            {profile?.role || 'No role provided'}
+                            {profile?.roles?.[0]?.roleName || 'No role provided'}
                         </div>
                         <div className={styles.summaryMeta}>
-                            {profile?.email || 'No email provided'}
+                            Email not available
                         </div>
                         {error && (
                             <div className={styles.inlineError}>{error}</div>
@@ -92,7 +94,7 @@ const ProfilePage = () => {
                                 Profile Details
                             </h2>
                             <span className={styles.apiBadge}>
-                                GET /auth/profile
+                                GET /v1/users/me
                             </span>
                         </div>
 
@@ -107,18 +109,10 @@ const ProfilePage = () => {
                             </div>
                             <div className={styles.detailItem}>
                                 <span className={styles.detailLabel}>
-                                    Email
-                                </span>
-                                <span className={styles.detailValue}>
-                                    {profile?.email || '—'}
-                                </span>
-                            </div>
-                            <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>
                                     First Name
                                 </span>
                                 <span className={styles.detailValue}>
-                                    {profile?.first_name || '—'}
+                                    {profile?.firstName || '—'}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
@@ -126,13 +120,13 @@ const ProfilePage = () => {
                                     Last Name
                                 </span>
                                 <span className={styles.detailValue}>
-                                    {profile?.last_name || '—'}
+                                    {profile?.lastName || '—'}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>Role</span>
+                                <span className={styles.detailLabel}>Roles</span>
                                 <span className={styles.detailValue}>
-                                    {profile?.role || '—'}
+                                    {profile?.roles?.map(r => r.roleName).join(', ') || '—'}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
@@ -140,20 +134,7 @@ const ProfilePage = () => {
                                     Department ID
                                 </span>
                                 <span className={styles.detailValue}>
-                                    {profile?.departmentId ??
-                                        profile?.department_id ??
-                                        '—'}
-                                </span>
-                            </div>
-                            <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>
-                                    Created At
-                                </span>
-                                <span className={styles.detailValue}>
-                                    {formatDate(
-                                        profile?.createdAt ||
-                                            profile?.created_at
-                                    )}
+                                    {profile?.departmentId ?? '—'}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
@@ -161,7 +142,7 @@ const ProfilePage = () => {
                                     Raw User ID
                                 </span>
                                 <span className={styles.detailValue}>
-                                    {profile?.id || profile?._id || '—'}
+                                    {profile?.id || '—'}
                                 </span>
                             </div>
                         </div>

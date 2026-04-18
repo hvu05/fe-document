@@ -4,7 +4,7 @@ export const API_CONFIG = {
     auth: {
         register: '/v1/auth/register',
         login: '/v1/auth/login',
-        profile: '/auth/profile',
+        profile: '/v1/users/me',
     },
     documents: {
         myDocuments: '/documents/my',

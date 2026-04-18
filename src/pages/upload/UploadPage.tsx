@@ -1,8 +1,9 @@
 /** @format */
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import type { UploadedDocument } from '../../types/document';
 import documentService from '../../services/documentService';
+import authService from '../../services/authService';
 import API_CONFIG from '../../config/api';
 import styles from './UploadPage.module.css';
 
@@ -24,6 +25,7 @@ const UploadPage = () => {
     const [departmentId, setDepartmentId] = useState<string>(
         user?.departmentId?.toString() ?? user?.department_id?.toString() ?? '1'
     );
+    const [departmentName, setDepartmentName] = useState<string>('Loading...');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     // Status
@@ -31,6 +33,33 @@ const UploadPage = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [success, setSuccess] = useState<string>('');
+
+    useEffect(() => {
+        const fetchDepartmentInfo = async () => {
+            try {
+                // Fetch profile to get true department ID
+                const profileRes = await authService.getProfile();
+                const profile = (profileRes.data as any).data || profileRes.data;
+                const dId = profile?.departmentId ?? profile?.department_id ?? departmentId;
+                setDepartmentId(dId.toString());
+
+                // Fetch departments to get the exact name
+                const deptsRes = await authService.getDepartments();
+                const depts = (deptsRes.data as any).data || deptsRes.data || [];
+                const matched = depts.find((d: any) => d.id === Number(dId));
+
+                if (matched) {
+                    setDepartmentName(matched.name);
+                } else {
+                    setDepartmentName(`Department ID: ${dId}`);
+                }
+            } catch (err) {
+                console.error('Failed to fetch department info', err);
+                setDepartmentName(`Department ID: ${departmentId}`);
+            }
+        };
+        fetchDepartmentInfo();
+    }, []);
 
     const handleUpload = async () => {
         if (!title.trim()) {
@@ -138,14 +167,12 @@ const UploadPage = () => {
                             </div>
 
                             <div className={styles.inputGrid}>
-                                {/* //TODO: Get the department ID from user role*/}
                                 <label className={styles.label}>
-                                    Department ID
+                                    Department
                                     <input
                                         className={styles.input}
-                                        type="number"
-                                        min="1"
-                                        value={departmentId}
+                                        type="text"
+                                        value={departmentName}
                                         disabled
                                     />
                                 </label>
@@ -157,9 +184,13 @@ const UploadPage = () => {
                                     className={styles.fileInput}
                                     type="file"
                                     onChange={(e) => {
-                                        const file =
-                                            e.target.files?.[0] ?? null;
+                                        const file = e.target.files?.[0] ?? null;
                                         setSelectedFile(file);
+                                        if (file && !title.trim()) {
+                                            // Extract filename without extension for a cleaner title
+                                            const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                                            setTitle(nameWithoutExt);
+                                        }
                                         resetMessages();
                                     }}
                                 />
