@@ -134,7 +134,7 @@ const LoginPage: React.FC = () => {
                     </button>
 
                     <span>
-                        Don't have an account?   <Link to="/register" className="forgot-password">Sign in here</Link>
+                        Don't have an account?   <Link to="/register" className="forgot-password">Sign up here</Link>
                     </span>
                 </form>
             </div>

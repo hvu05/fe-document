@@ -91,6 +91,11 @@ const documentService = {
     getDocumentVersions: (documentId: number) => {
         return axiosClient.get(`/documents/${documentId}/versions`);
     },
+
+    // Preview phiên bản mới nhất của tài liệu
+    previewDocument: (documentId: number) => {
+        return axiosClient.get(`/documents/${documentId}/preview`);
+    },
 };
 
 export default documentService;

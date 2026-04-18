@@ -121,7 +121,7 @@ const MyDocuments = () => {
 
     const handleDownloadHistoricalVersion = async (documentId: number, versionId: number, fileName: string) => {
         try {
-            const res = await documentService.downloadVersion(documentId, versionId);
+            const res = await documentService.downloadVersion(versionId);
             const url = window.URL.createObjectURL(new Blob([res.data]));
             const a = document.createElement('a');
             a.href = url;
@@ -131,6 +131,18 @@ const MyDocuments = () => {
         } catch {
             alert('Download failed');
         }
+    };
+
+    const handlePreview = (documentId: number) => {
+        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+        const url = `${baseURL}/documents/${documentId}/preview`;
+        window.open(url, '_blank');
+    };
+
+    const handleHistoricalPreview = (versionId: number) => {
+        const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+        const url = `${baseURL}/documents/versions/${versionId}/preview`;
+        window.open(url, '_blank');
     };
 
     const getNextVersion = (doc: any): number => {
@@ -213,6 +225,7 @@ const MyDocuments = () => {
                                             <div className={styles.actions}>
                                                 <button
                                                     className={styles.btnView}
+                                                    onClick={() => handlePreview(doc.id)}
                                                     title="View"
                                                 >
                                                     👁 View
@@ -381,7 +394,12 @@ const MyDocuments = () => {
                                                 </td>
                                                 <td>
                                                     <div className={styles.actions} style={{ justifyContent: 'flex-start', gap: '4px' }}>
-                                                        <button className={styles.btnView} title="View" style={{ padding: '4px 6px' }}>
+                                                        <button 
+                                                            className={styles.btnView} 
+                                                            title="View" 
+                                                            onClick={(e) => { e.stopPropagation(); handleHistoricalPreview(v.id); }}
+                                                            style={{ padding: '4px 6px' }}
+                                                        >
                                                             👁
                                                         </button>
                                                         <button 
