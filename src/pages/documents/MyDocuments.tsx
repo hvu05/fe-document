@@ -73,12 +73,11 @@ const MyDocuments = () => {
     };
 
     const handleDownload = async (doc: any) => {
-        const latestId = (doc as any).currentVersion ?? doc.latestVersion?.id ?? doc.versions?.[0]?.id;
-        if (!latestId) return;
+        const versionId = doc.versionId;
+
         try {
             const res = await documentService.downloadVersion(
-                doc.id,
-                latestId
+                versionId
             );
             const url = window.URL.createObjectURL(new Blob([res.data]));
             const a = document.createElement('a');

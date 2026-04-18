@@ -74,8 +74,8 @@ const documentService = {
     },
 
     // Tải xuống file theo version
-    downloadVersion: (documentId: number, versionId: number) => {
-        return axiosClient.get(`/documents/${documentId}/versions/${versionId}/download`, {
+    downloadVersion: (versionId: number) => {
+        return axiosClient.get(`/documents/versions/${versionId}/download`, {
             responseType: 'blob'
         });
     },
